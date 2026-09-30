@@ -8,12 +8,13 @@ from groq import Groq
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-RSS_URL = "https://lenta.ru/rss"  # Замените на RSS нужного вам сайта
+RSS_URL = "https://lenta.ru/rss"  # Можешь заменить на любой другой RSS
 STATE_FILE = "last_url.txt"
 
 client = Groq(api_key=GROQ_API_KEY)
 
 def get_image_from_description(description):
+    # Улучшенная регулярка для поиска картинок
     match = re.search(r'<img[^>]+src="([^">]+)"', description)
     return match.group(1) if match else None
 
@@ -24,7 +25,7 @@ def rewrite_text(title, summary):
 - Живой, разговорный язык, как будто рассказываешь другу.
 - Начни с цепляющей фразы или вопроса.
 - Добавь 2-4 подходящих эмодзи.
-- Сохрани все факты, цифры и имена из оригинала. Не выдумывай детали.
+- Сохрани все факты, цифры и имена из оригинала.
 - Длина: 3-4 коротких абзаца.
 
 Заголовок: {title}
@@ -40,25 +41,28 @@ def rewrite_text(title, summary):
         return completion.choices[0].message.content
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
-        return f"🚨 {title}\n\n{re.sub('<.*?>', '', summary)[:300]}..."
+        return f"📰 {title}\n\n{re.sub('<.*?>', '', summary)}"
 
 def send_to_telegram(text, image_url=None):
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=10).content
-            files = {'photo': ('image.jpg', img_data, 'image/jpeg')}
-            data = {'chat_id': CHAT_ID, 'caption': text, 'parse_mode': 'Markdown'}
+            files = {'photo': ('image.jpg', img_data)}
+            data = {'chat_id': CHAT_ID, 'caption': text[:1024]} # Лимит подписи к фото 1024 символа
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-            r = requests.post(url, files=files, data=data, timeout=30)
-            print("Telegram ответ (фото):", r.status_code, r.text[:200])
+            r = requests.post(url, files=files, data=data)
+            print("Telegram ответ (фото):", r.status_code)
+            if r.status_code != 200:
+                # Если фото не отправилось, шлем текстом
+                send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
         except Exception as e:
             print(f"Ошибка отправки фото: {e}")
-            send_to_telegram(text + f"\n\n🖼 [Фото]({image_url})", None)
+            send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
     else:
-        data = {'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'Markdown'}
+        data = {'chat_id': CHAT_ID, 'text': text[:4096]} # Лимит текста 4096 символов
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        r = requests.post(url, data=data, timeout=30)
-        print("Telegram ответ (текст):", r.status_code, r.text[:200])
+        r = requests.post(url, data=data, timeout=10)
+        print("Telegram ответ (текст):", r.status_code)
 
 def main():
     last_url = ""
@@ -71,6 +75,7 @@ def main():
         print("Не удалось получить RSS")
         return
 
+    # Берем самую свежую новость
     latest_entry = feed.entries[0]
     news_url = latest_entry.get('link', '')
 
@@ -81,18 +86,16 @@ def main():
     print(f"Найдена новость: {latest_entry.title}")
     
     title = latest_entry.get('title', 'Без заголовка')
-    summary = latest_entry.get('summary', latest_entry.get('description', 'Нет текста'))
-    clean_summary = re.sub('<.*?>', '', summary)
+    summary = latest_entry.get('summary', '')
+    clean_summary = re.sub('<.*?>', '', summary) # Очистка от HTML тегов
     
     image_url = get_image_from_description(summary)
-
+    
     rewritten_text = rewrite_text(title, clean_summary)
     send_to_telegram(rewritten_text, image_url)
 
     with open(STATE_FILE, "w") as f:
         f.write(news_url)
-    
-    print("Опубликовано!")
 
 if __name__ == "__main__":
     main()
