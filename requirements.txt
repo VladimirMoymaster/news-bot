@@ -1,5 +1,5 @@
 feedparser
 requests
 beautifulsoup4
-groq==0.9.0
-httpx==0.27.2
+groq
+httpx
