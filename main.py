@@ -81,7 +81,6 @@ def rewrite_text(title, summary):
             max_tokens=500
         )
         result = completion.choices[0].message.content
-        # Дополнительная очистка на всякий случай
         return clean_html_entities(result)
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
@@ -89,8 +88,7 @@ def rewrite_text(title, summary):
 
 def send_to_telegram(text, image_url=None):
     """Отправляет пост в Telegram с HTML-разметкой"""
-    
-        signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
+    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     final_text = text + signature
 
     if image_url:
@@ -98,14 +96,14 @@ def send_to_telegram(text, image_url=None):
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
             data = {
-                'chat_id': CHAT_ID, 
+                'chat_id': CHAT_ID,
                 'caption': final_text[:1024],
                 'parse_mode': 'HTML'
             }
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото):", r.status_code)
-            
+
             if r.status_code != 200:
                 print(f"Не удалось отправить фото. Ответ: {r.text}")
                 send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
@@ -114,7 +112,7 @@ def send_to_telegram(text, image_url=None):
             send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
     else:
         data = {
-            'chat_id': CHAT_ID, 
+            'chat_id': CHAT_ID,
             'text': final_text[:4096],
             'parse_mode': 'HTML'
         }
