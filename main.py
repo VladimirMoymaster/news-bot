@@ -8,7 +8,7 @@ from groq import Groq
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-RSS_URL = "https://lenta.ru/rss"  # Можешь заменить на любой другой RSS
+RSS_URL = "https://tolknews.ru/rss"  # Можешь заменить на любой другой RSS
 STATE_FILE = "last_url.txt"
 
 client = Groq(api_key=GROQ_API_KEY)
