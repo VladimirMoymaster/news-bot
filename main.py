@@ -10,7 +10,7 @@ CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # RSS-лента новостей Барнаула (Амител)
-RSS_URL = "https://www.amic.ru/rss/"
+RSS_URL = "https://altapress.ru/rss"
 STATE_FILE = "last_url.txt"
 
 client = Groq(api_key=GROQ_API_KEY)
