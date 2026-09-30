@@ -90,7 +90,7 @@ def rewrite_text(title, summary):
 def send_to_telegram(text, image_url=None):
     """Отправляет пост в Telegram с HTML-разметкой"""
     
-    signature = '\n\n━━━━━━━━━━━━━━━\n📌 <b>Барнаул ЧП | Новости и Разборы</b>\n👉 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c">Подписаться на канал</a>'
+        signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     final_text = text + signature
 
     if image_url:
