@@ -9,10 +9,12 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- ИСТОЧНИКИ НОВОСТЕЙ ---
+# --- ИСТОЧНИКИ НОВОСТЕЙ (только проверенные) ---
 RSS_SOURCES = [
-    "https://altapress.ru/rss",       # Алтапресс
-    "https://www.amic.ru/rss/news",       # Амител
+    "https://altapress.ru/rss",              # Алтапресс (работает)
+    "https://tolknews.ru/rss",                # Толк (Барнаул)
+    "https://www.bankfax.ru/rss/",            # Банкфакс (Алтай, ЧП)
+    "https://altai.aif.ru/rss/all.php",       # АиФ Алтай
 ]
 
 STATE_FILE = "last_url.txt"
@@ -98,7 +100,6 @@ def get_image_from_description(entry):
     return match.group(1) if match else None
 
 def parse_rss(url):
-    """Парсит RSS-ленту и возвращает список новостей"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*'
@@ -198,7 +199,6 @@ def main():
     try:
         published_urls = load_published_urls()
         
-        # --- Собираем новости с обоих источников ---
         all_news = []
         for source in RSS_SOURCES:
             print(f"Загружаем {source}...")
@@ -212,7 +212,6 @@ def main():
             print("Новостей не найдено.")
             return
         
-        # --- Ищем подходящую ЧП-новость ---
         found_news = None
         for news in all_news:
             title = news['title']
