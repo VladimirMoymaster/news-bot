@@ -3,6 +3,7 @@ import feedparser
 import requests
 import re
 from groq import Groq
+from bs4 import BeautifulSoup
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -10,27 +11,26 @@ CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 RSS_URL = "https://altapress.ru/rss"
+BEZFORMATA_URL = "https://barnaul.bezformata.com/incident/"
+
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 
-# --- ГЕОГРАФИЯ (новость должна содержать хотя бы одно из этих слов) ---
+# --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
     "барнаул", "алтай", "бийск", "рубцовск", "новоалтайск", 
     "заринск", "камень-на-оби", "славгород", "алейск", "горно-алтайск",
     "алтайский край", "алтайском крае", "алтайского края", "алтая"
 ]
 
-# --- ТЕМАТИКА ЧП (новость должна содержать хотя бы одно из этих слов) ---
+# --- ТЕМАТИКА ЧП ---
 CHP_KEYWORDS = [
-    # ДТП и аварии
     "дтп", "авария", "столкновение", "наезд", "сбил", "сбила", 
     "перевернулся", "опрокинулся", "лобовое", "столкнулись", "разбился",
     "погиб", "погибла", "погибли", "пострадал", "пострадала", "пострадали",
     "травмы", "госпитализирован", "скорая", "водитель", "пешеход",
-    # Пожары и ЧС
     "пожар", "возгорание", "горел", "горела", "горело", "сгорел", "сгорела",
     "взрыв", "взорвался", "хлопок", "дым", "огнеборцы", "мчс",
-    # Преступления
     "убийство", "убил", "убила", "убийца", "труп", "тело", "нашли тело",
     "ограбление", "ограбил", "кража", "украли", "похитил", "похищение",
     "мошенник", "мошенничество", "обманул", "развод", "афера",
@@ -40,13 +40,12 @@ CHP_KEYWORDS = [
     "суд", "осудили", "приговор", "приговорил", "уголовное дело", "следствие",
     "задержан", "задержали", "арестован", "арестовали", "подозреваемый",
     "прокуратура", "следственный комитет", "полиция", "росгвардия",
-    # Происшествия
     "чп", "чрезвычайное", "трагедия", "катастрофа", "обрушение", "обрушился",
     "утонул", "утонула", "утонули", "пропал", "пропала", "пропали", "розыск",
     "спасатели", "спасение", "эвакуация", "эвакуировали"
 ]
 
-# --- ИСКЛЮЧАЮЩИЕ СЛОВА (если новость содержит эти слова — пропускаем) ---
+# --- ИСКЛЮЧАЮЩИЕ СЛОВА ---
 EXCLUDE_KEYWORDS = [
     "погода", "прогноз", "температура", "осадки", "снег", "дождь", "ветер",
     "культура", "концерт", "выставка", "театр", "музей", "фестиваль",
@@ -73,20 +72,13 @@ def clean_html_entities(text):
     return text
 
 def is_chp_news(title, summary):
-    """Проверяет, относится ли новость к ЧП в Барнауле/Алтае"""
     text = (title + " " + summary).lower()
-    
-    # 1. Проверяем, что новость про Алтай/Барнаул
     has_geo = any(keyword in text for keyword in GEO_KEYWORDS)
     if not has_geo:
         return False
-    
-    # 2. Проверяем, что есть исключающие слова
     for exclude in EXCLUDE_KEYWORDS:
         if exclude in text:
             return False
-    
-    # 3. Проверяем, что новость про ЧП
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     return has_chp
 
@@ -103,6 +95,73 @@ def get_image_from_description(entry):
     match = re.search(r'<img[^>]+src="([^">]+)"', description)
     return match.group(1) if match else None
 
+def parse_altapress():
+    """Парсит RSS Алтапресса и возвращает список новостей"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+    }
+    try:
+        response = requests.get(RSS_URL, headers=headers, timeout=20)
+        response.raise_for_status()
+        feed = feedparser.parse(response.content)
+        
+        news = []
+        for entry in feed.entries[:15]:
+            news.append({
+                'title': entry.get('title', ''),
+                'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
+                'url': entry.get('link', ''),
+                'image': get_image_from_description(entry)
+            })
+        return news
+    except Exception as e:
+        print(f"Ошибка загрузки Алтапресса: {e}")
+        return []
+
+def parse_bezformata():
+    """Парсит HTML Bezformata и возвращает список новостей"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    try:
+        response = requests.get(BEZFORMATA_URL, headers=headers, timeout=20)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        news = []
+        # Ищем все ссылки на новости на странице
+        for link in soup.find_all('a', href=True):
+            href = link.get('href', '')
+            title = link.get_text(strip=True)
+            
+            # Фильтруем ссылки: они должны вести на новости bezformata
+            if '/news/' in href and title and len(title) > 20:
+                full_url = href if href.startswith('http') else f"https://barnaul.bezformata.com{href}"
+                
+                # Ищем описание рядом со ссылкой
+                parent = link.find_parent()
+                description = ''
+                if parent:
+                    desc_elem = parent.find('p') or parent.find('div', class_='description')
+                    if desc_elem:
+                        description = desc_elem.get_text(strip=True)
+                
+                news.append({
+                    'title': title,
+                    'summary': clean_html_entities(description),
+                    'url': full_url,
+                    'image': None
+                })
+                
+                if len(news) >= 15:
+                    break
+        
+        return news
+    except Exception as e:
+        print(f"Ошибка загрузки Bezformata: {e}")
+        return []
+
 def rewrite_text(title, summary):
     prompt = f"""
 Ты — автор Telegram-канала о ЧП и происшествиях в Барнауле и Алтайском крае.
@@ -115,7 +174,7 @@ def rewrite_text(title, summary):
 - Сохрани все факты, цифры, имена и адреса из оригинала.
 - Упоминай местные реалии (улицы, районы Барнаула), если они есть.
 - Длина: 3-4 коротких абзаца.
-- Тон: серьёзный, но не сухой. Без паники, но с вниманием к деталям.
+- Тон: серьёзный, но не сухой.
 - НЕ используй HTML-теги и сущности. Только обычный текст.
 
 Заголовок: {title}
@@ -132,7 +191,7 @@ def rewrite_text(title, summary):
         return clean_html_entities(result)
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
-        return f"🚨 {title}\n\n{clean_html_entities(re.sub('<.*?>', '', summary))}"
+        return f"🚨 {title}\n\n{clean_html_entities(summary)}"
 
 def send_to_telegram(text, image_url=None):
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
@@ -169,7 +228,6 @@ def save_published_urls(urls):
         f.write("\n".join(urls))
 
 def main():
-    # Защита от параллельных запусков
     if os.path.exists(LOCK_FILE):
         print("Обнаружен параллельный запуск. Пропускаем.")
         return
@@ -180,65 +238,59 @@ def main():
     try:
         published_urls = load_published_urls()
         
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/rss+xml, application/xml, text/xml, */*'
-        }
+        # --- Собираем новости из обоих источников ---
+        print("Загружаем Алтапресс...")
+        altapress_news = parse_altapress()
+        print(f"Алтапресс: {len(altapress_news)} новостей")
         
-        try:
-            response = requests.get(RSS_URL, headers=headers, timeout=20)
-            response.raise_for_status()
-            feed = feedparser.parse(response.content)
-        except Exception as e:
-            print(f"Ошибка загрузки RSS: {e}")
+        print("Загружаем Bezformata...")
+        bezformata_news = parse_bezformata()
+        print(f"Bezformata: {len(bezformata_news)} новостей")
+        
+        all_news = altapress_news + bezformata_news
+        print(f"Всего новостей: {len(all_news)}")
+        
+        if not all_news:
+            print("Новостей не найдено.")
             return
-
-        if not feed.entries:
-            print("Не удалось получить RSS")
-            return
-
+        
+        # --- Ищем подходящую ЧП-новость ---
         found_news = None
-        for entry in feed.entries[:20]:
-            title = entry.get('title', '')
-            summary = entry.get('summary', '')
-            clean_summary = clean_html_entities(re.sub('<.*?>', '', summary))
-            entry_url = entry.get('link', '')
+        for news in all_news:
+            title = news['title']
+            summary = news['summary']
+            url = news['url']
             
-            # Проверка на дубликат
-            if entry_url in published_urls:
+            if url in published_urls:
                 print(f"Пропускаем (уже было): {title[:50]}...")
                 continue
             
-            # Проверка на ЧП в Барнауле
-            if not is_chp_news(title, clean_summary):
+            if not is_chp_news(title, summary):
                 print(f"Пропускаем (не ЧП или не Алтай): {title[:50]}...")
                 continue
             
-            found_news = entry
+            found_news = news
             break
-
+        
         if not found_news:
             print("Подходящих ЧП-новостей не найдено.")
             return
-
-        news_url = found_news.get('link', '')
-        title = found_news.get('title', 'Без заголовка')
-        summary = clean_html_entities(re.sub('<.*?>', '', found_news.get('summary', '')))
         
-        print(f"Найдена ЧП-новость: {title}")
+        print(f"Найдена ЧП-новость: {found_news['title']}")
+        print(f"Источник: {found_news['url']}")
         
-        image_url = get_image_from_description(found_news)
-        print(f"Найдена картинка: {image_url}")
+        image_url = found_news['image']
+        print(f"Картинка: {image_url}")
         
-        rewritten_text = rewrite_text(title, summary)
+        rewritten_text = rewrite_text(found_news['title'], found_news['summary'])
         
         try:
             send_to_telegram(rewritten_text, image_url)
             print("Пост успешно отправлен!")
         except Exception as e:
-            print(f"ОШИБКА при отправке в Telegram: {e}")
+            print(f"ОШИБКА при отправке: {e}")
         finally:
-            published_urls.append(news_url)
+            published_urls.append(found_news['url'])
             save_published_urls(published_urls)
             print(f"URL сохранён. Всего опубликовано: {len(published_urls)}")
     
