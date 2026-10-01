@@ -9,7 +9,7 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- ИСТОЧНИКИ НОВОСТЕЙ (только проверенные) ---
+# --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
     "https://altapress.ru/rss",              # Алтапресс (работает)
     "https://tolknews.ru/rss",                # Толк (Барнаул)
@@ -65,6 +65,8 @@ EXCLUDE_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
+    """Очищает текст от HTML-сущностей и Markdown-разметки"""
+    # 1. Убираем HTML-сущности
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -73,6 +75,14 @@ def clean_html_entities(text):
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
+    
+    # 2. Убираем Markdown-разметку
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # **жирный** → жирный
+    text = re.sub(r'\*(.+?)\*', r'\1', text)      # *курсив* → курсив
+    text = re.sub(r'__(.+?)__', r'\1', text)      # __жирный__ → жирный
+    text = re.sub(r'_(.+?)_', r'\1', text)        # _курсив_ → курсив
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)  # # Заголовок → Заголовок
+    
     return text
 
 def is_chp_news(title, summary):
@@ -100,6 +110,7 @@ def get_image_from_description(entry):
     return match.group(1) if match else None
 
 def parse_rss(url):
+    """Парсит RSS-ленту и возвращает список новостей"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*'
@@ -136,7 +147,8 @@ def rewrite_text(title, summary):
 - Упоминай местные реалии (улицы, районы Барнаула), если они есть.
 - Длина: 3-4 коротких абзаца.
 - Тон: серьёзный, но не сухой.
-- НЕ используй HTML-теги и сущности. Только обычный текст.
+- НЕ используй HTML-теги и сущности (&laquo;, &raquo;, &amp; и т.п.).
+- НЕ используй Markdown-разметку (**, *, __, _, #). Только обычный текст.
 
 Заголовок: {title}
 Текст: {summary}
