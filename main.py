@@ -13,10 +13,50 @@ RSS_URL = "https://altapress.ru/rss"
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 
-KEYWORDS = [
+# --- ГЕОГРАФИЯ (новость должна содержать хотя бы одно из этих слов) ---
+GEO_KEYWORDS = [
     "барнаул", "алтай", "бийск", "рубцовск", "новоалтайск", 
     "заринск", "камень-на-оби", "славгород", "алейск", "горно-алтайск",
-    "алтайский край", "алтайском крае", "алтайского края"
+    "алтайский край", "алтайском крае", "алтайского края", "алтая"
+]
+
+# --- ТЕМАТИКА ЧП (новость должна содержать хотя бы одно из этих слов) ---
+CHP_KEYWORDS = [
+    # ДТП и аварии
+    "дтп", "авария", "столкновение", "наезд", "сбил", "сбила", 
+    "перевернулся", "опрокинулся", "лобовое", "столкнулись", "разбился",
+    "погиб", "погибла", "погибли", "пострадал", "пострадала", "пострадали",
+    "травмы", "госпитализирован", "скорая", "водитель", "пешеход",
+    # Пожары и ЧС
+    "пожар", "возгорание", "горел", "горела", "горело", "сгорел", "сгорела",
+    "взрыв", "взорвался", "хлопок", "дым", "огнеборцы", "мчс",
+    # Преступления
+    "убийство", "убил", "убила", "убийца", "труп", "тело", "нашли тело",
+    "ограбление", "ограбил", "кража", "украли", "похитил", "похищение",
+    "мошенник", "мошенничество", "обманул", "развод", "афера",
+    "нападение", "напал", "избил", "избиение", "драка", "подрались",
+    "нож", "ножом", "порезал", "ранение", "выстрел", "стрельба",
+    "наркотик", "наркотики", "закладка", "сбыт",
+    "суд", "осудили", "приговор", "приговорил", "уголовное дело", "следствие",
+    "задержан", "задержали", "арестован", "арестовали", "подозреваемый",
+    "прокуратура", "следственный комитет", "полиция", "росгвардия",
+    # Происшествия
+    "чп", "чрезвычайное", "трагедия", "катастрофа", "обрушение", "обрушился",
+    "утонул", "утонула", "утонули", "пропал", "пропала", "пропали", "розыск",
+    "спасатели", "спасение", "эвакуация", "эвакуировали"
+]
+
+# --- ИСКЛЮЧАЮЩИЕ СЛОВА (если новость содержит эти слова — пропускаем) ---
+EXCLUDE_KEYWORDS = [
+    "погода", "прогноз", "температура", "осадки", "снег", "дождь", "ветер",
+    "культура", "концерт", "выставка", "театр", "музей", "фестиваль",
+    "спорт", "футбол", "хоккей", "матч", "олимпиада", "чемпионат",
+    "кулинария", "рецепт", "еда", "ресторан", "кафе",
+    "автомобиль", "обзор", "тест-драйв", "новинка", "гаджет",
+    "экономика", "курс валют", "доллар", "евро", "бирж",
+    "политика", "путин", "правительство", "госдума", "закон",
+    "кредит", "ипотека", "банк", "вклад",
+    "отпуск", "туризм", "путешествие", "курорт"
 ]
 
 client = Groq(api_key=GROQ_API_KEY)
@@ -32,12 +72,23 @@ def clean_html_entities(text):
         text = text.replace(old, new)
     return text
 
-def is_barnaul_news(title, summary):
+def is_chp_news(title, summary):
+    """Проверяет, относится ли новость к ЧП в Барнауле/Алтае"""
     text = (title + " " + summary).lower()
-    for keyword in KEYWORDS:
-        if keyword in text:
-            return True
-    return False
+    
+    # 1. Проверяем, что новость про Алтай/Барнаул
+    has_geo = any(keyword in text for keyword in GEO_KEYWORDS)
+    if not has_geo:
+        return False
+    
+    # 2. Проверяем, что есть исключающие слова
+    for exclude in EXCLUDE_KEYWORDS:
+        if exclude in text:
+            return False
+    
+    # 3. Проверяем, что новость про ЧП
+    has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
+    return has_chp
 
 def get_image_from_description(entry):
     if 'enclosures' in entry and len(entry.enclosures) > 0:
@@ -54,15 +105,18 @@ def get_image_from_description(entry):
 
 def rewrite_text(title, summary):
     prompt = f"""
-Ты — автор Telegram-канала о новостях Барнаула и Алтайского края. Перепиши эту новость.
+Ты — автор Telegram-канала о ЧП и происшествиях в Барнауле и Алтайском крае.
+Перепиши эту новость в стиле криминальной хроники.
+
 Правила стиля:
 - Живой, разговорный язык, как будто рассказываешь другу-барнаульцу.
-- Начни с цепляющей фразы или вопроса.
-- Добавь 2-4 подходящих эмодзи.
-- Сохрани все факты, цифры и имена из оригинала.
-- Упоминай местные реалии, если они есть в тексте.
+- Начни с цепляющей фразы (вопрос, восклицание или интрига).
+- Добавь 2-4 подходящих эмодзи (🚨, 🚗, 🔥, 🚑, ⚠️, 👮).
+- Сохрани все факты, цифры, имена и адреса из оригинала.
+- Упоминай местные реалии (улицы, районы Барнаула), если они есть.
 - Длина: 3-4 коротких абзаца.
-- НЕ используй HTML-теги и сущности (&laquo;, &raquo;, &amp; и т.п.). Только обычный текст.
+- Тон: серьёзный, но не сухой. Без паники, но с вниманием к деталям.
+- НЕ используй HTML-теги и сущности. Только обычный текст.
 
 Заголовок: {title}
 Текст: {summary}
@@ -78,7 +132,7 @@ def rewrite_text(title, summary):
         return clean_html_entities(result)
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
-        return f"📰 {title}\n\n{clean_html_entities(re.sub('<.*?>', '', summary))}"
+        return f"🚨 {title}\n\n{clean_html_entities(re.sub('<.*?>', '', summary))}"
 
 def send_to_telegram(text, image_url=None):
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
@@ -104,25 +158,22 @@ def send_to_telegram(text, image_url=None):
         print("Telegram ответ (текст):", r.status_code)
 
 def load_published_urls():
-    """Загружает список последних 20 опубликованных URL"""
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
             return [line.strip() for line in f.readlines() if line.strip()]
     return []
 
 def save_published_urls(urls):
-    """Сохраняет список последних 20 URL"""
-    urls = urls[-20:]  # Храним только последние 20
+    urls = urls[-20:]
     with open(STATE_FILE, "w") as f:
         f.write("\n".join(urls))
 
 def main():
-    # --- ЗАЩИТА ОТ ПАРАЛЛЕЛЬНЫХ ЗАПУСКОВ ---
+    # Защита от параллельных запусков
     if os.path.exists(LOCK_FILE):
         print("Обнаружен параллельный запуск. Пропускаем.")
         return
     
-    # Создаём файл-блокировку
     with open(LOCK_FILE, "w") as f:
         f.write("locked")
     
@@ -146,36 +197,35 @@ def main():
             print("Не удалось получить RSS")
             return
 
-        # --- ИЩЕМ ПОДХОДЯЩУЮ НОВОСТЬ ---
         found_news = None
-        for entry in feed.entries[:15]:
+        for entry in feed.entries[:20]:
             title = entry.get('title', '')
             summary = entry.get('summary', '')
             clean_summary = clean_html_entities(re.sub('<.*?>', '', summary))
             entry_url = entry.get('link', '')
             
-            # Проверка на дубликат (по URL)
+            # Проверка на дубликат
             if entry_url in published_urls:
                 print(f"Пропускаем (уже было): {title[:50]}...")
                 continue
             
-            # Проверка на Алтай
-            if not is_barnaul_news(title, clean_summary):
-                print(f"Пропускаем (не про Алтай): {title[:50]}...")
+            # Проверка на ЧП в Барнауле
+            if not is_chp_news(title, clean_summary):
+                print(f"Пропускаем (не ЧП или не Алтай): {title[:50]}...")
                 continue
             
             found_news = entry
             break
 
         if not found_news:
-            print("Подходящих новостей не найдено.")
+            print("Подходящих ЧП-новостей не найдено.")
             return
 
         news_url = found_news.get('link', '')
         title = found_news.get('title', 'Без заголовка')
         summary = clean_html_entities(re.sub('<.*?>', '', found_news.get('summary', '')))
         
-        print(f"Найдена новость: {title}")
+        print(f"Найдена ЧП-новость: {title}")
         
         image_url = get_image_from_description(found_news)
         print(f"Найдена картинка: {image_url}")
@@ -188,13 +238,11 @@ def main():
         except Exception as e:
             print(f"ОШИБКА при отправке в Telegram: {e}")
         finally:
-            # Добавляем URL в список опубликованных
             published_urls.append(news_url)
             save_published_urls(published_urls)
             print(f"URL сохранён. Всего опубликовано: {len(published_urls)}")
     
     finally:
-        # Удаляем файл-блокировку
         if os.path.exists(LOCK_FILE):
             os.remove(LOCK_FILE)
 
