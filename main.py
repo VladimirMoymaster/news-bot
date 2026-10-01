@@ -3,15 +3,17 @@ import feedparser
 import requests
 import re
 from groq import Groq
-from bs4 import BeautifulSoup
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-RSS_URL = "https://altapress.ru/rss"
-BEZFORMATA_URL = "https://barnaul.bezformata.com/incident/"
+# --- ИСТОЧНИКИ НОВОСТЕЙ ---
+RSS_SOURCES = [
+    "https://altapress.ru/rss",       # Алтапресс
+    "https://www.amic.ru/rss/",       # Амител
+]
 
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
@@ -51,9 +53,9 @@ EXCLUDE_KEYWORDS = [
     "культура", "концерт", "выставка", "театр", "музей", "фестиваль",
     "спорт", "футбол", "хоккей", "матч", "олимпиада", "чемпионат",
     "кулинария", "рецепт", "еда", "ресторан", "кафе",
-    "автомобиль", "обзор", "тест-драйв", "новинка", "гаджет",
+    "обзор", "тест-драйв", "новинка", "гаджет",
     "экономика", "курс валют", "доллар", "евро", "бирж",
-    "политика", "путин", "правительство", "госдума", "закон",
+    "политика", "путин", "правительство", "госдума",
     "кредит", "ипотека", "банк", "вклад",
     "отпуск", "туризм", "путешествие", "курорт"
 ]
@@ -95,14 +97,14 @@ def get_image_from_description(entry):
     match = re.search(r'<img[^>]+src="([^">]+)"', description)
     return match.group(1) if match else None
 
-def parse_altapress():
-    """Парсит RSS Алтапресса и возвращает список новостей"""
+def parse_rss(url):
+    """Парсит RSS-ленту и возвращает список новостей"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/rss+xml, application/xml, text/xml, */*'
     }
     try:
-        response = requests.get(RSS_URL, headers=headers, timeout=20)
+        response = requests.get(url, headers=headers, timeout=20)
         response.raise_for_status()
         feed = feedparser.parse(response.content)
         
@@ -112,54 +114,12 @@ def parse_altapress():
                 'title': entry.get('title', ''),
                 'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
                 'url': entry.get('link', ''),
-                'image': get_image_from_description(entry)
+                'image': get_image_from_description(entry),
+                'source': url
             })
         return news
     except Exception as e:
-        print(f"Ошибка загрузки Алтапресса: {e}")
-        return []
-
-def parse_bezformata():
-    """Парсит HTML Bezformata и возвращает список новостей"""
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
-    try:
-        response = requests.get(BEZFORMATA_URL, headers=headers, timeout=20)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        news = []
-        # Ищем все ссылки на новости на странице
-        for link in soup.find_all('a', href=True):
-            href = link.get('href', '')
-            title = link.get_text(strip=True)
-            
-            # Фильтруем ссылки: они должны вести на новости bezformata
-            if '/news/' in href and title and len(title) > 20:
-                full_url = href if href.startswith('http') else f"https://barnaul.bezformata.com{href}"
-                
-                # Ищем описание рядом со ссылкой
-                parent = link.find_parent()
-                description = ''
-                if parent:
-                    desc_elem = parent.find('p') or parent.find('div', class_='description')
-                    if desc_elem:
-                        description = desc_elem.get_text(strip=True)
-                
-                news.append({
-                    'title': title,
-                    'summary': clean_html_entities(description),
-                    'url': full_url,
-                    'image': None
-                })
-                
-                if len(news) >= 15:
-                    break
-        
-        return news
-    except Exception as e:
-        print(f"Ошибка загрузки Bezformata: {e}")
+        print(f"Ошибка загрузки {url}: {e}")
         return []
 
 def rewrite_text(title, summary):
@@ -238,16 +198,14 @@ def main():
     try:
         published_urls = load_published_urls()
         
-        # --- Собираем новости из обоих источников ---
-        print("Загружаем Алтапресс...")
-        altapress_news = parse_altapress()
-        print(f"Алтапресс: {len(altapress_news)} новостей")
+        # --- Собираем новости с обоих источников ---
+        all_news = []
+        for source in RSS_SOURCES:
+            print(f"Загружаем {source}...")
+            news = parse_rss(source)
+            print(f"  → {len(news)} новостей")
+            all_news.extend(news)
         
-        print("Загружаем Bezformata...")
-        bezformata_news = parse_bezformata()
-        print(f"Bezformata: {len(bezformata_news)} новостей")
-        
-        all_news = altapress_news + bezformata_news
         print(f"Всего новостей: {len(all_news)}")
         
         if not all_news:
