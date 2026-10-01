@@ -12,7 +12,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
     "https://altapress.ru/rss",       # Алтапресс
-    "https://www.amic.ru/export/rss.xml",       # Амител
+    "https://www.amic.ru/rss/news",       # Амител
 ]
 
 STATE_FILE = "last_url.txt"
