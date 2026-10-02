@@ -175,7 +175,7 @@ EXCLUDE_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
-    """Очищает текст от HTML-сущностей, Markdown-разметки и опасных символов"""
+    """Очищает текст от HTML-сущностей, Markdown и опасных символов"""
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -192,7 +192,7 @@ def clean_html_entities(text):
     text = re.sub(r'_(.+?)_', r'\1', text)
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
     
-    # Убираем одиночные символы, ломающие HTML
+    # Убираем символы < и > (они ломают HTML в Telegram)
     text = text.replace('<', '').replace('>', '')
     
     return text
@@ -301,11 +301,8 @@ def rewrite_text(title, summary):
         return f"{title}\n\n{clean_html_entities(summary)}"
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост в Telegram.
-    Если текст короткий — фото с caption.
-    Если длинный — фото отдельно + текст отдельным сообщением.
-    """
-    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
+    """Отправляет пост в Telegram БЕЗ HTML-разметки."""
+    signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
     final_text = text + signature
 
     # Telegram: caption — 1024 символа, сообщение — 4096
@@ -318,24 +315,20 @@ def send_to_telegram(text, image_url=None):
             files = {'photo': ('image.jpg', img_data)}
 
             if USE_SEPARATE:
-                # Шаг 1: фото без подписи
+                # Фото без подписи
                 data = {'chat_id': CHAT_ID}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
                 r = requests.post(url, files=files, data=data, timeout=30)
                 print("Telegram ответ (фото без caption):", r.status_code)
 
-                # Шаг 2: текст отдельным сообщением
-                data = {
-                    'chat_id': CHAT_ID,
-                    'text': final_text[:4096],
-                    'parse_mode': 'HTML'
-                }
+                # Текст отдельно
+                data = {'chat_id': CHAT_ID, 'text': final_text[:4096]}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
                 r2 = requests.post(url, data=data, timeout=15)
                 print("Telegram ответ (текст):", r2.status_code)
             else:
-                # Всё влезает в caption
-                data = {'chat_id': CHAT_ID, 'caption': final_text, 'parse_mode': 'HTML'}
+                # Всё в caption
+                data = {'chat_id': CHAT_ID, 'caption': final_text}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
                 r = requests.post(url, files=files, data=data, timeout=30)
                 print("Telegram ответ (фото с caption):", r.status_code)
@@ -348,8 +341,8 @@ def send_to_telegram(text, image_url=None):
             print(f"Ошибка отправки фото: {e}")
             send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
     else:
-        # Без картинки — только текст
-        data = {'chat_id': CHAT_ID, 'text': final_text[:4096], 'parse_mode': 'HTML'}
+        # Только текст
+        data = {'chat_id': CHAT_ID, 'text': final_text[:4096]}
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         r = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (текст):", r.status_code)
