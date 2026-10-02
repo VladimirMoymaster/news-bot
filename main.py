@@ -59,7 +59,7 @@ GEO_KEYWORDS = [
     "новичиха", "панкрушиха", "петропавловское", "родино", "роман",
     "смоленское", "советское", "солонешное", "суетка", "табуны",
     "тальменка", "третьяково", "троицкое", "тым", "усть-калманка",
-    "усть-пристань", "целинное", "чарыш", "шелболиха", "шипуново",
+    "усть-пристань", "чарыш", "шелболиха", "шипуново",
 ]
 
 # --- ТЕМАТИКА ЧП ---
@@ -114,7 +114,7 @@ CHP_KEYWORDS = [
     "несчастный случай",
 ]
 
-# --- ИСКЛЮЧАЮЩИЕ СЛОВА (расширенный список) ---
+# --- ИСКЛЮЧАЮЩИЕ СЛОВА ---
 EXCLUDE_KEYWORDS = [
     # Погода
     "погода", "прогноз", "осадки", "снегопад", "дождь",
@@ -145,11 +145,9 @@ EXCLUDE_KEYWORDS = [
     "вакцинация", "прививка", "диспансеризация", "чекап",
     "поликлиника", "маммография", "диагност", "медицин",
     "заболеван", "болезн", "лечен", "эндокринолог",
-    "назначен", "назначена", "назначили", "сменился", "сменилась",
-    "возглавил", "возглавила", "возглавляла", "возглавлял",
-    "перестановка", "кадровая", "кадровые", "главный врач",
-    "главврач", "руководитель", "директор", "заместитель",
-    "министр", "и.о.", "исполняющий обязанности",
+    "назнач", "сменил", "возглав", "перестановк", "кадров",
+    "главврач", "главный врач", "и.о.", "исполняющ",
+    "руководитель", "директор", "заместитель", "министр",
     # Мероприятия и анонсы
     "анонс", "мероприятие", "событие", "форум", "конференция",
     "презентация", "субботник", "месячник",
@@ -177,12 +175,12 @@ EXCLUDE_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
-    """Очищает текст от HTML-сущностей и Markdown-разметки"""
+    """Очищает текст от HTML-сущностей, Markdown-разметки и опасных символов"""
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
         '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
-        '&lt;': '<', '&gt;': '>'
+        '&lt;': '', '&gt;': ''
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
@@ -193,6 +191,9 @@ def clean_html_entities(text):
     text = re.sub(r'__(.+?)__', r'\1', text)
     text = re.sub(r'_(.+?)_', r'\1', text)
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    
+    # Убираем одиночные символы, ломающие HTML
+    text = text.replace('<', '').replace('>', '')
     
     return text
 
@@ -277,9 +278,10 @@ def rewrite_text(title, summary):
 - Сохрани все факты, цифры, имена, должности и адреса без изменений.
 - Не выдумывай детали, которых нет в исходном тексте.
 - Структура: сначала что произошло, потом детали, в конце — последствия или решения властей.
-- Длина: 3-4 коротких абзаца.
+- Длина: 3-4 коротких абзаца. Всего не более 800 символов.
 - В начале заголовка можно поставить ОДИН тематический эмодзи: 🚨 (ЧП), 🚗 (ДТП), 🔥 (пожар), 🚑 (пострадавшие), ⚠️ (предупреждение), 👮 (преступление). Не используй смайлики и другие эмодзи.
 - НЕ используй HTML-теги, HTML-сущности и Markdown-разметку (**, *, __, _, #).
+- НЕ используй символы < и >.
 - НЕ упоминай источник новости.
 
 Заголовок: {title}
@@ -299,23 +301,54 @@ def rewrite_text(title, summary):
         return f"{title}\n\n{clean_html_entities(summary)}"
 
 def send_to_telegram(text, image_url=None):
+    """Отправляет пост в Telegram.
+    Если текст короткий — фото с caption.
+    Если длинный — фото отдельно + текст отдельным сообщением.
+    """
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     final_text = text + signature
+
+    # Telegram: caption — 1024 символа, сообщение — 4096
+    # Если текст длиннее 900 символов — отправляем раздельно
+    USE_SEPARATE = len(final_text) > 900
 
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
-            data = {'chat_id': CHAT_ID, 'caption': final_text[:1024], 'parse_mode': 'HTML'}
-            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-            r = requests.post(url, files=files, data=data, timeout=30)
-            print("Telegram ответ (фото):", r.status_code)
-            if r.status_code != 200:
-                send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
+
+            if USE_SEPARATE:
+                # Шаг 1: фото без подписи
+                data = {'chat_id': CHAT_ID}
+                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+                r = requests.post(url, files=files, data=data, timeout=30)
+                print("Telegram ответ (фото без caption):", r.status_code)
+
+                # Шаг 2: текст отдельным сообщением
+                data = {
+                    'chat_id': CHAT_ID,
+                    'text': final_text[:4096],
+                    'parse_mode': 'HTML'
+                }
+                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                r2 = requests.post(url, data=data, timeout=15)
+                print("Telegram ответ (текст):", r2.status_code)
+            else:
+                # Всё влезает в caption
+                data = {'chat_id': CHAT_ID, 'caption': final_text, 'parse_mode': 'HTML'}
+                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+                r = requests.post(url, files=files, data=data, timeout=30)
+                print("Telegram ответ (фото с caption):", r.status_code)
+
+                if r.status_code != 200:
+                    print(f"Ошибка caption: {r.text}")
+                    print("Отправляем раздельно...")
+                    send_to_telegram(text, image_url)
         except Exception as e:
             print(f"Ошибка отправки фото: {e}")
             send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
     else:
+        # Без картинки — только текст
         data = {'chat_id': CHAT_ID, 'text': final_text[:4096], 'parse_mode': 'HTML'}
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         r = requests.post(url, data=data, timeout=15)
