@@ -19,6 +19,7 @@ STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 30
 
+# --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
     "барнаул", "бийск", "рубцовск", "новоалтайск", "заринск",
     "камень-на-оби", "славгород", "алейск", "горно-алтайск",
@@ -55,6 +56,7 @@ GEO_KEYWORDS = [
     "усть-пристань", "чарыш", "шелболиха", "шипуново",
 ]
 
+# --- ТЕМАТИКА ЧП ---
 CHP_KEYWORDS = [
     "дтп", "авария", "столкновение", "наезд", "сбил", "сбила", "сбили",
     "перевернулся", "перевернулась", "опрокинулся", "опрокинулась",
@@ -101,6 +103,7 @@ CHP_KEYWORDS = [
     "несчастный случай",
 ]
 
+# --- ИСКЛЮЧАЮЩИЕ СЛОВА ---
 EXCLUDE_KEYWORDS = [
     "погода", "прогноз", "осадки", "снегопад", "дождь",
     "гололёд", "гололед", "туман", "жара", "мороз",
@@ -147,6 +150,7 @@ EXCLUDE_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
+    """Очищает текст от HTML, Markdown и упоминаний источников."""
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -156,16 +160,36 @@ def clean_html_entities(text):
     for old, new in replacements.items():
         text = text.replace(old, new)
     
+    # Убираем Markdown
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     text = re.sub(r'__(.+?)__', r'\1', text)
     text = re.sub(r'_(.+?)_', r'\1', text)
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    
+    # Убираем символы < и >
     text = text.replace('<', '').replace('>', '')
+    
+    # Убираем упоминания источников
+    text = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'как пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'информационное агентство\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
+    
+    for source in ['Банкфакс', 'Алтапресс', 'АиФ', 'Толк', 'Амител', 'Комсомольская правда']:
+        text = text.replace(f'«{source}»', '')
+        text = text.replace(f'"{source}"', '')
+        text = text.replace(source, '')
+    
+    # Убираем двойные пробелы и лишние переносы
+    text = re.sub(r'[ \t]+', ' ', text).strip()
+    text = re.sub(r'\n\s*\n', '\n\n', text)
     
     return text
 
 def is_chp_news(title, summary):
+    """Строгая проверка на ЧП."""
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
@@ -235,11 +259,11 @@ def rewrite_text(title, summary):
 - Сохрани все факты, цифры, имена, должности и адреса без изменений.
 - Не выдумывай детали, которых нет в исходном тексте.
 - Структура: сначала что произошло, потом детали, в конце — последствия или решения властей.
-- Длина: 3-4 коротких абзаца. Всего не более 800 символов.
+- Длина: СТРОГО 3 абзаца. Всего НЕ БОЛЕЕ 500 символов.
 - В начале заголовка можно поставить ОДИН тематический эмодзи: 🚨 (ЧП), 🚗 (ДТП), 🔥 (пожар), 🚑 (пострадавшие), ⚠️ (предупреждение), 👮 (преступление). Не используй смайлики и другие эмодзи.
-- НЕ используй HTML-теги, HTML-сущности и Markdown-разметку (**, *, __, _, #).
+- НЕ используй HTML-теги, HTML-сущности и Markdown-разметку.
 - НЕ используй символы < и >.
-- НЕ упоминай источник новости.
+- НЕ упоминай источник новости (Банкфакс, Алтапресс, АиФ, Толк и другие).
 
 Заголовок: {title}
 Текст: {summary}
@@ -249,7 +273,7 @@ def rewrite_text(title, summary):
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
-            max_tokens=500
+            max_tokens=400
         )
         result = completion.choices[0].message.content
         return clean_html_entities(result)
@@ -258,11 +282,18 @@ def rewrite_text(title, summary):
         return f"{title}\n\n{clean_html_entities(summary)}"
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост в Telegram БЕЗ HTML-разметки."""
-    # ⚠️ ИСПРАВЛЕНО: убраны HTML-теги <a> и <b> из подписи
-    signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
+    """Отправляет пост в Telegram с кликабельной ссылкой в подписи."""
+    # ⚠️ Ссылка вшита в название канала
+    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c">Барнаул ЧП | Новости и Разборы</a>'
+
+    # Обрезаем текст от ИИ, чтобы подпись гарантированно влезла
+    max_text_len = 4096 - len(signature) - 100
+    if len(text) > max_text_len:
+        text = text[:max_text_len]
+
     final_text = text + signature
 
+    # Для caption — 1024 символа. Если длиннее 900 — раздельно
     USE_SEPARATE = len(final_text) > 900
 
     if image_url:
@@ -271,17 +302,23 @@ def send_to_telegram(text, image_url=None):
             files = {'photo': ('image.jpg', img_data)}
 
             if USE_SEPARATE:
+                # 1. Фото отдельно
                 data = {'chat_id': CHAT_ID}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
                 r = requests.post(url, files=files, data=data, timeout=30)
                 print("Telegram ответ (фото без caption):", r.status_code)
 
-                data = {'chat_id': CHAT_ID, 'text': final_text[:4096]}
+                # 2. Текст с HTML
+                data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
                 r2 = requests.post(url, data=data, timeout=15)
                 print("Telegram ответ (текст):", r2.status_code)
+
+                if r2.status_code != 200:
+                    print(f"Ошибка текста: {r2.text}")
             else:
-                data = {'chat_id': CHAT_ID, 'caption': final_text}
+                # Всё в caption
+                data = {'chat_id': CHAT_ID, 'caption': final_text, 'parse_mode': 'HTML'}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
                 r = requests.post(url, files=files, data=data, timeout=30)
                 print("Telegram ответ (фото с caption):", r.status_code)
@@ -294,10 +331,13 @@ def send_to_telegram(text, image_url=None):
             print(f"Ошибка отправки фото: {e}")
             send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
     else:
-        data = {'chat_id': CHAT_ID, 'text': final_text[:4096]}
+        data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         r = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (текст):", r.status_code)
+
+        if r.status_code != 200:
+            print(f"Ошибка текста: {r.text}")
 
 def load_published_urls():
     if os.path.exists(STATE_FILE):
