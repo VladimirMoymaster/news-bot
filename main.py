@@ -2,12 +2,10 @@ import os
 import feedparser
 import requests
 import re
-from groq import Groq
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
@@ -80,7 +78,7 @@ CHP_KEYWORDS = [
     "несчастный случай", "отравился", "отравление",
     "эпидемия", "вспышка", "карантин",
     "обморожение", "переохлаждение", "тепловой удар",
-    "укус", "укусил", "напала собака", "задушил", "задушила",
+    "укус", "укусил", "напала собака",
 ]
 
 # --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ ---
@@ -131,10 +129,12 @@ HARD_EXCLUDE = [
     "тверь", "новгород", "псков",
 ]
 
-client = Groq(api_key=GROQ_API_KEY)
-
-def clean_html_entities(text):
-    """Очищает текст от HTML, Markdown и упоминаний источников."""
+def clean_text(text):
+    """Очищает текст от HTML и мусора."""
+    # Убираем HTML-теги
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # HTML-сущности
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -144,13 +144,7 @@ def clean_html_entities(text):
     for old, new in replacements.items():
         text = text.replace(old, new)
     
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-    text = re.sub(r'\*(.+?)\*', r'\1', text)
-    text = re.sub(r'__(.+?)__', r'\1', text)
-    text = re.sub(r'_(.+?)_', r'\1', text)
-    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
-    text = text.replace('<', '').replace('>', '')
-    
+    # Упоминания источников
     text = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
     text = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
     text = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
@@ -162,8 +156,8 @@ def clean_html_entities(text):
         text = text.replace(f'"{source}"', '')
         text = text.replace(source, '')
     
-    text = re.sub(r'[ \t]+', ' ', text).strip()
-    text = re.sub(r'\n\s*\n', '\n\n', text)
+    # Убираем лишние пробелы
+    text = re.sub(r'\s+', ' ', text).strip()
     
     return text
 
@@ -215,7 +209,7 @@ def parse_rss(url):
             
             news.append({
                 'title': title,
-                'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
+                'summary': clean_text(entry.get('summary', '')),
                 'url': url_link,
                 'guid': guid,
                 'title_hash': title_hash,
@@ -227,58 +221,51 @@ def parse_rss(url):
         print(f"Ошибка загрузки {url}: {e}")
         return []
 
-def beautify_text(title, summary):
-    """
-    НЕ переписывает текст! Только:
-    - Добавляет эмодзи в начало заголовка
-    - Разбивает на абзацы
-    - Убирает лишние символы
-    """
-    # Определяем эмодзи по типу новости
+def get_emoji(text_lower):
+    """Подбирает эмодзи по теме новости."""
+    if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул", "наезд"]):
+        return "🚗"
+    if any(w in text_lower for w in ["пожар", "возгора", "горел", "сгорел", "огнеборц", "поджог"]):
+        return "🔥"
+    if any(w in text_lower for w in ["убийств", "убил", "труп", "нашли тело", "убийца"]):
+        return "👮"
+    if any(w in text_lower for w in ["пострадал", "госпитализ", "травм"]):
+        return "🚑"
+    if any(w in text_lower for w in ["взрыв", "взорвал", "хлопок"]):
+        return "⚠️"
+    if any(w in text_lower for w in ["спасли", "спасение", "мчс"]):
+        return "🚨"
+    return "🚨"
+
+def format_post(title, summary):
+    """Формирует пост из оригинала — без переписывания."""
     text_lower = (title + " " + summary).lower()
+    emoji = get_emoji(text_lower)
     
-    if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул"]):
-        emoji = "🚗"
-    elif any(w in text_lower for w in ["пожар", "возгора", "горел", "сгорел", "огнеборц", "поджог"]):
-        emoji = "🔥"
-    elif any(w in text_lower for w in ["убийств", "убил", "труп", "нашли тело", "убийца"]):
-        emoji = "👮"
-    elif any(w in text_lower for w in ["пострадал", "госпитализ", "травм"]):
-        emoji = "🚑"
-    elif any(w in text_lower for w in ["взрыв", "взорвал", "хлопок"]):
-        emoji = "⚠️"
-    else:
-        emoji = "🚨"
-    
-    # Формируем заголовок
+    # Заголовок с эмодзи
     heading = f"{emoji} {title}"
     
-    # Очищаем текст от лишнего
-    clean_summary = clean_html_entities(summary)
+    # Тело — оригинал, разбитый на абзацы
+    clean_summary = clean_text(summary)
     
-    # Разбиваем на абзацы по точкам, если текст длинный
-    # Ищем конец первого предложения после ~200 символов
+    # Разбиваем на абзацы по предложениям (макс 300 символов в абзаце)
     if len(clean_summary) > 400:
-        # Разбиваем по предложениям
         sentences = re.split(r'(?<=[.!?])\s+', clean_summary)
         paragraphs = []
         current = ""
         for s in sentences:
-            if len(current) + len(s) > 300:
+            if len(current) + len(s) > 300 and current:
                 paragraphs.append(current.strip())
                 current = s
             else:
-                current += " " + s
-        if current.strip():
+                current = (current + " " + s).strip()
+        if current:
             paragraphs.append(current.strip())
-        
         body = "\n\n".join(paragraphs)
     else:
         body = clean_summary
     
-    result = f"{heading}\n\n{body}"
-    
-    return result.strip()
+    return f"{heading}\n\n{body}"
 
 def smart_cut(text, limit):
     """Обрезка по последней точке."""
@@ -294,7 +281,6 @@ def send_to_telegram(text, image_url=None):
     """Отправляет пост."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
-    MAX_CAPTION = 1024 - len(signature) - 50
     MAX_MSG = 4096 - len(signature) - 50
     
     # Если фото есть и текст влезает в caption — фото с caption
@@ -312,7 +298,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Иначе — раздельно
+    # Иначе — раздельно: фото, потом текст
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -324,6 +310,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
+    # Текст с умной обрезкой
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -409,12 +396,12 @@ def main():
         image_url = found_news['image']
         print(f"Картинка: {image_url}")
         
-        # Украшаем текст (без переписывания!)
-        beautified_text = beautify_text(found_news['title'], found_news['summary'])
-        print(f"Размер украшенного текста: {len(beautified_text)} символов")
+        # Формируем пост из оригинала
+        post_text = format_post(found_news['title'], found_news['summary'])
+        print(f"Размер поста: {len(post_text)} символов")
         
         try:
-            send_to_telegram(beautified_text, image_url)
+            send_to_telegram(post_text, image_url)
             print("Пост успешно отправлен!")
         except Exception as e:
             print(f"ОШИБКА при отправке: {e}")
