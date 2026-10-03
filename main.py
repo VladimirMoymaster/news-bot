@@ -2,10 +2,12 @@ import os
 import feedparser
 import requests
 import re
+from groq import Groq
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
@@ -129,12 +131,10 @@ HARD_EXCLUDE = [
     "тверь", "новгород", "псков",
 ]
 
-def clean_text(text):
-    """Очищает текст от HTML и мусора."""
-    # Убираем HTML-теги
-    text = re.sub(r'<[^>]+>', '', text)
-    
-    # HTML-сущности
+client = Groq(api_key=GROQ_API_KEY)
+
+def clean_html_entities(text):
+    """Очищает текст от HTML, Markdown и упоминаний источников."""
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -144,7 +144,13 @@ def clean_text(text):
     for old, new in replacements.items():
         text = text.replace(old, new)
     
-    # Упоминания источников
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = re.sub(r'__(.+?)__', r'\1', text)
+    text = re.sub(r'_(.+?)_', r'\1', text)
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    text = text.replace('<', '').replace('>', '')
+    
     text = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
     text = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
     text = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', text, flags=re.IGNORECASE)
@@ -156,8 +162,8 @@ def clean_text(text):
         text = text.replace(f'"{source}"', '')
         text = text.replace(source, '')
     
-    # Убираем лишние пробелы
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'[ \t]+', ' ', text).strip()
+    text = re.sub(r'\n\s*\n', '\n\n', text)
     
     return text
 
@@ -209,7 +215,7 @@ def parse_rss(url):
             
             news.append({
                 'title': title,
-                'summary': clean_text(entry.get('summary', '')),
+                'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
                 'url': url_link,
                 'guid': guid,
                 'title_hash': title_hash,
@@ -233,39 +239,54 @@ def get_emoji(text_lower):
         return "🚑"
     if any(w in text_lower for w in ["взрыв", "взорвал", "хлопок"]):
         return "⚠️"
-    if any(w in text_lower for w in ["спасли", "спасение", "мчс"]):
-        return "🚨"
     return "🚨"
 
-def format_post(title, summary):
-    """Формирует пост из оригинала — без переписывания."""
-    text_lower = (title + " " + summary).lower()
-    emoji = get_emoji(text_lower)
+def rewrite_text(title, summary):
+    """
+    ИИ РЕДАКТИРУЕТ (не пересказывает) — сохраняет все факты,
+    делает текст читаемым, добавляет эмодзи и разбивает на абзацы.
+    """
+    original_len = len(title) + len(summary)
     
-    # Заголовок с эмодзи
-    heading = f"{emoji} {title}"
-    
-    # Тело — оригинал, разбитый на абзацы
-    clean_summary = clean_text(summary)
-    
-    # Разбиваем на абзацы по предложениям (макс 300 символов в абзаце)
-    if len(clean_summary) > 400:
-        sentences = re.split(r'(?<=[.!?])\s+', clean_summary)
-        paragraphs = []
-        current = ""
-        for s in sentences:
-            if len(current) + len(s) > 300 and current:
-                paragraphs.append(current.strip())
-                current = s
-            else:
-                current = (current + " " + s).strip()
-        if current:
-            paragraphs.append(current.strip())
-        body = "\n\n".join(paragraphs)
-    else:
-        body = clean_summary
-    
-    return f"{heading}\n\n{body}"
+    prompt = f"""
+Ты — редактор Telegram-канала о ЧП в Барнауле и Алтайском крае.
+Твоя задача — УКРАСИТЬ И СТРУКТУРИРОВАТЬ текст, СОХРАНИВ ВСЕ ФАКТЫ.
+
+ВАЖНЫЕ ПРАВИЛА:
+1. НЕ СОКРАЩАЙ! Сохрани все детали, цифры, имена, адреса, обстоятельства.
+2. Добавь ОДИН эмодзи в начало заголовка (🚗, 🔥, 👮, 🚑, ⚠️ или 🚨).
+3. Разбей текст на 3-4 абзаца (по 2-4 предложения).
+4. Сделай заголовок цепляющим, но без выдумок.
+5. Сохрани оригинальные формулировки там, где это важно (официальные фразы, цитаты).
+6. НЕ используй HTML, Markdown, символы < и >.
+7. НЕ упоминай источник новости.
+
+ЦЕЛЬ: пост 800-1500 символов, в котором есть ВСЁ из оригинала, но читается легко.
+
+Заголовок: {title}
+Текст: {summary}
+"""
+    try:
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=1500
+        )
+        result = completion.choices[0].message.content.strip()
+        result = clean_html_entities(result)
+        
+        # Если ИИ сократил текст (меньше 70% от оригинала) — используем оригинал
+        if len(result) < original_len * 0.7:
+            print(f"⚠️ ИИ сократил текст ({len(result)} vs {original_len}). Используем оригинал.")
+            emoji = get_emoji((title + " " + summary).lower())
+            result = f"{emoji} {title}\n\n{summary}"
+        
+        return result
+    except Exception as e:
+        print(f"Ошибка ИИ: {e}")
+        emoji = get_emoji((title + " " + summary).lower())
+        return f"{emoji} {title}\n\n{summary}"
 
 def smart_cut(text, limit):
     """Обрезка по последней точке."""
@@ -278,12 +299,12 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост."""
+    """Отправляет пост: короткий — фото с caption, длинный — раздельно."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Если фото есть и текст влезает в caption — фото с caption
+    # Если фото есть и текст влезает в caption (1024) — фото с caption
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -310,7 +331,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст с умной обрезкой
+    # Текст
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -396,8 +417,7 @@ def main():
         image_url = found_news['image']
         print(f"Картинка: {image_url}")
         
-        # Формируем пост из оригинала
-        post_text = format_post(found_news['title'], found_news['summary'])
+        post_text = rewrite_text(found_news['title'], found_news['summary'])
         print(f"Размер поста: {len(post_text)} символов")
         
         try:
