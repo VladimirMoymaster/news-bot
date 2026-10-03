@@ -9,7 +9,7 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- ИСТОЧНИКИ НОВОСТЕЙ (региональные, только Алтай) ---
+# --- ИСТОЧНИКИ НОВОСТЕЙ (региональные, Алтай) ---
 RSS_SOURCES = [
     "https://altapress.ru/rss",
     "https://altai.aif.ru/rss/all.php",
@@ -19,7 +19,7 @@ STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 30
 
-# --- ТЕМАТИКА ЧП (только происшествия) ---
+# --- ТЕМАТИКА ЧП ---
 CHP_KEYWORDS = [
     # ДТП и аварии
     "дтп", "авария", "столкновение", "наезд", "сбил", "сбила", "сбили",
@@ -71,7 +71,7 @@ CHP_KEYWORDS = [
     "несчастный случай",
 ]
 
-# --- ИСКЛЮЧАЮЩИЕ СЛОВА (мирные новости + другие регионы) ---
+# --- ИСКЛЮЧАЮЩИЕ СЛОВА ---
 EXCLUDE_KEYWORDS = [
     # Погода
     "погода", "прогноз", "осадки", "снегопад", "дождь",
@@ -127,7 +127,7 @@ EXCLUDE_KEYWORDS = [
     "скидка", "распродажа", "подарок", "розыгрыш",
     # Разное
     "свадьба", "юбилей", "выставка достижений",
-    # --- ДРУГИЕ РЕГИОНЫ (чтобы не публиковать их новости) ---
+    # --- ДРУГИЕ РЕГИОНЫ ---
     "новосибирск", "красноярск", "кемерово", "томск", "омск",
     "екатеринбург", "свердловск", "челябинск", "тюмень",
     "иркутск", "улан-удэ", "чита", "якутск", "хабаровск",
@@ -146,7 +146,7 @@ EXCLUDE_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
-    """Очищает текст от HTML, Markdown, упоминаний источников."""
+    """Очищает текст от HTML, Markdown и упоминаний источников."""
     replacements = {
         '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
         '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
@@ -156,14 +156,11 @@ def clean_html_entities(text):
     for old, new in replacements.items():
         text = text.replace(old, new)
     
-    # Убираем Markdown
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     text = re.sub(r'__(.+?)__', r'\1', text)
     text = re.sub(r'_(.+?)_', r'\1', text)
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
-    
-    # Убираем символы < и >
     text = text.replace('<', '').replace('>', '')
     
     # Убираем упоминания источников
@@ -178,33 +175,24 @@ def clean_html_entities(text):
         text = text.replace(f'"{source}"', '')
         text = text.replace(source, '')
     
-    # Убираем двойные пробелы и лишние переносы
     text = re.sub(r'[ \t]+', ' ', text).strip()
     text = re.sub(r'\n\s*\n', '\n\n', text)
     
     return text
 
 def is_chp_news(title, summary):
-    """
-    Строгая проверка на ЧП.
-    - Убрана проверка гео: оба источника региональные (Алтай).
-    - ЧП-слово обязательно в заголовке.
-    - Исключающие слова (погода, культура, другие регионы) блокируют.
-    """
+    """Строгая проверка на ЧП."""
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
-    # 1. Исключающие слова
     for exclude in EXCLUDE_KEYWORDS:
         if exclude in text:
             return False
     
-    # 2. ЧП-слово в тексте
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     if not has_chp:
         return False
     
-    # 3. ЧП-слово ОБЯЗАТЕЛЬНО в заголовке
     chp_in_title = any(keyword in title_lower for keyword in CHP_KEYWORDS)
     if not chp_in_title:
         return False
@@ -249,21 +237,21 @@ def parse_rss(url):
         return []
 
 def rewrite_text(title, summary):
+    """Короткий текст для caption (не более 800 символов)."""
     prompt = f"""
 Ты — редактор новостного Telegram-канала о происшествиях в Барнауле и Алтайском крае.
-Напиши информационное сообщение на основе следующей новости.
+Напиши короткое информационное сообщение на основе новости.
 
-Требования к стилю:
-- Официально-информационный тон, как у региональных новостных агентств.
-- Живой, но серьёзный язык. Без разговорных выражений и обращений к читателю.
-- Сохрани все факты, цифры, имена, должности и адреса без изменений.
-- Не выдумывай детали, которых нет в исходном тексте.
-- Структура: сначала что произошло, потом детали, в конце — последствия или решения властей.
-- Длина: СТРОГО 3 абзаца. Всего НЕ БОЛЕЕ 500 символов.
-- В начале заголовка можно поставить ОДИН тематический эмодзи: 🚨 (ЧП), 🚗 (ДТП), 🔥 (пожар), 🚑 (пострадавшие), ⚠️ (предупреждение), 👮 (преступление). Не используй смайлики и другие эмодзи.
-- НЕ используй HTML-теги, HTML-сущности и Markdown-разметку.
+КРИТИЧЕСКИЕ ТРЕБОВАНИЯ:
+- Длина: СТРОГО 3 коротких предложения. Всего НЕ БОЛЕЕ 500 символов.
+- Формат: заголовок + 2 предложения текста.
+- Официально-информационный тон, как у новостных агентств.
+- Сохрани факты, цифры, имена, адреса.
+- Не выдумывай детали, которых нет в исходной новости.
+- В начале заголовка — ОДИН эмодзи: 🚨, 🚗, 🔥, 🚑, ⚠️ или 👮.
+- НЕ используй HTML-теги, HTML-сущности и Markdown.
 - НЕ используй символы < и >.
-- НЕ упоминай источник новости (Банкфакс, Алтапресс, АиФ, Толк и другие).
+- НЕ упоминай источник новости.
 
 Заголовок: {title}
 Текст: {summary}
@@ -273,64 +261,69 @@ def rewrite_text(title, summary):
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
-            max_tokens=400
+            max_tokens=300
         )
-        result = completion.choices[0].message.content
-        return clean_html_entities(result)
+        result = completion.choices[0].message.content.strip()
+        result = clean_html_entities(result)
+        
+        # Обрезка до 800 символов с сохранением целого предложения
+        if len(result) > 800:
+            result = result[:800]
+            last_dot = result.rfind('.')
+            if last_dot > 400:
+                result = result[:last_dot + 1]
+        
+        return result
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
-        return f"{title}\n\n{clean_html_entities(summary)}"
+        return f"{title}\n\n{clean_html_entities(summary)}"[:800]
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост в Telegram с кликабельной ссылкой в подписи."""
-    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c">Барнаул ЧП | Новости и Разборы</a>'
+    """Отправляет фото с текстом одним сообщением."""
+    signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
 
-    max_text_len = 4096 - len(signature) - 100
+    # Обрезка текста, чтобы влез в caption (1024)
+    max_text_len = 1024 - len(signature) - 10
     if len(text) > max_text_len:
         text = text[:max_text_len]
+        last_dot = text.rfind('.')
+        if last_dot > 200:
+            text = text[:last_dot + 1]
 
     final_text = text + signature
-    USE_SEPARATE = len(final_text) > 900
 
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
+            data = {'chat_id': CHAT_ID, 'caption': final_text}
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+            r = requests.post(url, files=files, data=data, timeout=30)
+            print("Telegram ответ (фото с caption):", r.status_code)
 
-            if USE_SEPARATE:
+            if r.status_code != 200:
+                print(f"Ошибка caption: {r.text}")
+                print("Отправляем фото и текст раздельно...")
+                # Фото
                 data = {'chat_id': CHAT_ID}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-                r = requests.post(url, files=files, data=data, timeout=30)
-                print("Telegram ответ (фото без caption):", r.status_code)
-
-                data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
+                r2 = requests.post(url, files=files, data=data, timeout=30)
+                print("Telegram ответ (фото):", r2.status_code)
+                # Текст
+                data = {'chat_id': CHAT_ID, 'text': final_text}
                 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-                r2 = requests.post(url, data=data, timeout=15)
-                print("Telegram ответ (текст):", r2.status_code)
-
-                if r2.status_code != 200:
-                    print(f"Ошибка текста: {r2.text}")
-            else:
-                data = {'chat_id': CHAT_ID, 'caption': final_text, 'parse_mode': 'HTML'}
-                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-                r = requests.post(url, files=files, data=data, timeout=30)
-                print("Telegram ответ (фото с caption):", r.status_code)
-
-                if r.status_code != 200:
-                    print(f"Ошибка caption: {r.text}")
-                    print("Отправляем раздельно...")
-                    send_to_telegram(text, image_url)
+                r3 = requests.post(url, data=data, timeout=15)
+                print("Telegram ответ (текст):", r3.status_code)
         except Exception as e:
             print(f"Ошибка отправки фото: {e}")
-            send_to_telegram(text + f"\n\n🖼 Ссылка на фото: {image_url}")
+            data = {'chat_id': CHAT_ID, 'text': final_text}
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            requests.post(url, data=data, timeout=15)
     else:
-        data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
+        data = {'chat_id': CHAT_ID, 'text': final_text[:4096]}
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         r = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (текст):", r.status_code)
-
-        if r.status_code != 200:
-            print(f"Ошибка текста: {r.text}")
 
 def load_published_urls():
     if os.path.exists(STATE_FILE):
