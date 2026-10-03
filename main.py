@@ -18,7 +18,7 @@ RSS_SOURCES = [
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 30
-MAX_HISTORY = 100  # сколько последних ключей хранить
+MAX_HISTORY = 100
 
 # --- ТЕМАТИКА ЧП ---
 CHP_KEYWORDS = [
@@ -83,7 +83,7 @@ CHP_KEYWORDS = [
     "укус", "укусил", "напала собака",
 ]
 
-# --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ (блокируют ВСЕГДА) ---
+# --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ ---
 HARD_EXCLUDE = [
     "погода", "прогноз", "осадки", "снегопад", "гололёд", "гололед",
     "магнитная буря", "потепление", "похолодание",
@@ -210,9 +210,7 @@ def parse_rss(url):
         for entry in feed.entries[:NEWS_PER_SOURCE]:
             title = entry.get('title', '')
             url_link = entry.get('link', '')
-            # GUID — уникальный ID новости (не меняется при смене URL)
             guid = entry.get('id', url_link)
-            # Хеш заголовка — первые 60 символов (для защиты от дублей на разных источниках)
             title_hash = re.sub(r'\W+', '', title.lower())[:60]
             
             news.append({
@@ -230,22 +228,22 @@ def parse_rss(url):
         return []
 
 def rewrite_text(title, summary):
-    """Полноценный текст новости (не короткий)."""
+    """Полноценный текст новости с жёсткой структурой."""
     prompt = f"""
 Ты — редактор новостного Telegram-канала о происшествиях в Барнауле и Алтайском крае.
 Напиши информационное сообщение на основе новости.
 
 ЖЁСТКИЕ ТРЕБОВАНИЯ (не нарушай):
-- Объём: СТРОГО 4 абзаца. Примерно 1000-1300 символов.
-- Абзац 1: Что произошло? Где? Когда? (заголовок + 1-2 предложения)
-- Абзац 2: Детали происшествия (кто участвовал, что случилось, обстоятельства)
-- Абзац 3: Последствия (пострадавшие, ущерб, реакция властей)
-- Абзац 4: Что дальше (следствие, проверка, решения)
+- Объём: СТРОГО 4 абзаца. Примерно 1000-1300 символов. МЕНЬШЕ 800 символов НЕ ДОПУСКАЕТСЯ.
+- Абзац 1: Заголовок с эмодзи + что произошло, где, когда (2-3 предложения).
+- Абзац 2: Детали происшествия — кто участвовал, что случилось, обстоятельства (2-3 предложения).
+- Абзац 3: Последствия — пострадавшие, ущерб, реакция властей (2-3 предложения).
+- Абзац 4: Что дальше — следствие, проверка, решения (1-2 предложения).
 
-Пример стиля:
+ПРИМЕР ПРАВИЛЬНОГО ПОСТА:
 «🚗 Два человека пострадали в ДТП на трассе под Барнаулом
 
-Авария произошла вечером 2 октября на трассе Р-256 в районе села Калманка. Водитель автомобиля Toyota Corolla не справился с управлением и выехал на встречную полосу.
+Авария произошла вечером 2 октября на трассе Р-256 в районе села Калманка. Водитель автомобиля Toyota Corolla не справился с управлением и выехал на встречную полосу движения.
 
 По предварительным данным, в результате столкновения с грузовиком пострадали два человека — водитель и пассажир легковушки. Оба доставлены в больницу с травмами различной степени тяжести.
 
@@ -253,7 +251,6 @@ def rewrite_text(title, summary):
 
 ТРЕБОВАНИЯ К ТЕКСТУ:
 - Официально-информационный тон, как у новостных агентств.
-- Живой, но серьёзный язык.
 - Сохрани ВСЕ факты, цифры, имена, должности и адреса.
 - Не выдумывай детали, которых нет в исходной новости.
 - В начале заголовка — ОДИН эмодзи: 🚨, 🚗, 🔥, 🚑, ⚠️ или 👮.
@@ -268,18 +265,17 @@ def rewrite_text(title, summary):
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=800
+            max_tokens=900
         )
         result = completion.choices[0].message.content.strip()
         result = clean_html_entities(result)
         
-        # Если ИИ вернул СЛИШКОМ короткий текст (меньше 300 символов) — используем оригинал
-        if len(result) < 300:
+        # Если ИИ вернул СЛИШКОМ короткий текст (меньше 600 символов) — fallback на оригинал
+        if len(result) < 600:
             print(f"⚠️ ИИ вернул короткий текст ({len(result)} символов). Используем оригинал.")
-            result = f"🚨 {title}\n\n{clean_html_entities(summary)}"
-            # Обрезаем оригинал до 1300 символов с сохранением целого предложения
-            if len(result) > 1300:
-                result = result[:1300]
+            result = f"🚨 {title}\n\n{summary}"
+            if len(result) > 1400:
+                result = result[:1400]
                 last_dot = max(result.rfind('.'), result.rfind('!'), result.rfind('?'))
                 if last_dot > 800:
                     result = result[:last_dot + 1]
@@ -287,33 +283,33 @@ def rewrite_text(title, summary):
         return result
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
-        fallback = f"🚨 {title}\n\n{clean_html_entities(summary)}"
-        if len(fallback) > 1300:
-            fallback = fallback[:1300]
+        fallback = f"🚨 {title}\n\n{summary}"
+        if len(fallback) > 1400:
+            fallback = fallback[:1400]
             last_dot = max(fallback.rfind('.'), fallback.rfind('!'), fallback.rfind('?'))
             if last_dot > 800:
                 fallback = fallback[:last_dot + 1]
         return fallback
-        
+
+def smart_cut(text, limit):
+    """Обрезка по последней точке, а не посередине."""
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
+    if last_dot > limit * 0.5:
+        return cut[:last_dot + 1]
+    return cut
+
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост. Текст НЕ обрезается в середине предложения."""
+    """Отправляет пост с умной обрезкой и защитой от неполного текста."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
-    # Резервируем 200 символов под подпись
-    MAX_TEXT_LEN = 1024 - len(signature) - 50  # для caption
-    MAX_MSG_LEN = 4096 - len(signature) - 50   # для обычного сообщения
+    # Резерв 200 символов под подпись
+    MAX_CAPTION = 1024 - len(signature) - 50
+    MAX_MSG = 4096 - len(signature) - 50
     
-    # Обрезаем по последней точке, а не посередине
-    def smart_cut(text, limit):
-        if len(text) <= limit:
-            return text
-        cut = text[:limit]
-        last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
-        if last_dot > limit * 0.5:
-            return cut[:last_dot + 1]
-        return cut
-    
-    # Если есть фото и текст влезает в caption — фото с caption
+    # Если фото есть и текст влезает в caption — фото с caption
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -328,7 +324,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Иначе — раздельно
+    # Иначе — раздельно: фото, потом текст
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -341,7 +337,7 @@ def send_to_telegram(text, image_url=None):
             print(f"Ошибка фото: {e}")
     
     # Текст с умной обрезкой
-    final_text = smart_cut(text, MAX_MSG_LEN) + signature
+    final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     r = requests.post(url, data=data, timeout=15)
@@ -350,20 +346,18 @@ def send_to_telegram(text, image_url=None):
     if r.status_code != 200:
         print(f"Ошибка HTML: {r.text}")
         plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
-        plain_text = smart_cut(text, MAX_MSG_LEN) + plain_signature
+        plain_text = smart_cut(text, MAX_MSG) + plain_signature
         data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
         r2 = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (без HTML):", r2.status_code)
-        
+
 def load_published_keys():
-    """Загружает список опубликованных ключей."""
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
             return [line.strip() for line in f.readlines() if line.strip()]
     return []
 
 def save_published_keys(keys):
-    """Сохраняет последние MAX_HISTORY ключей."""
     keys = keys[-MAX_HISTORY:]
     with open(STATE_FILE, "w") as f:
         f.write("\n".join(keys))
@@ -401,7 +395,6 @@ def main():
             guid = news['guid']
             title_hash = news['title_hash']
             
-            # Двойная проверка на дубли
             if guid in published_keys:
                 print(f"Пропускаем (GUID уже был): {title[:50]}...")
                 continue
@@ -439,7 +432,6 @@ def main():
         except Exception as e:
             print(f"ОШИБКА при отправке: {e}")
         finally:
-            # Сохраняем ВСЕ три ключа — GUID, URL, хеш заголовка
             published_keys.append(found_news['guid'])
             published_keys.append(found_news['url'])
             published_keys.append(found_news['title_hash'])
