@@ -80,7 +80,7 @@ CHP_KEYWORDS = [
     "несчастный случай", "отравился", "отравление",
     "эпидемия", "вспышка", "карантин",
     "обморожение", "переохлаждение", "тепловой удар",
-    "укус", "укусил", "напала собака", "задушил", "задушила",
+    "укус", "укусил", "напала собака",
 ]
 
 # --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ ---
@@ -168,7 +168,7 @@ def clean_html_entities(text):
     return text
 
 def is_chp_news(title, summary):
-    """Улучшенная проверка на ЧП."""
+    """Проверка на ЧП."""
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
@@ -227,72 +227,61 @@ def parse_rss(url):
         print(f"Ошибка загрузки {url}: {e}")
         return []
 
-def rewrite_text(title, summary):
-    """Полноценный текст новости с жёсткой структурой."""
-    prompt = f"""
-Ты — редактор новостного Telegram-канала о происшествиях в Барнауле и Алтайском крае.
-Напиши информационное сообщение на основе новости.
-
-ЖЁСТКИЕ ТРЕБОВАНИЯ (не нарушай):
-- Объём: СТРОГО 4 абзаца. Примерно 1000-1300 символов. МЕНЬШЕ 800 символов НЕ ДОПУСКАЕТСЯ.
-- Абзац 1: Заголовок с эмодзи + что произошло, где, когда (2-3 предложения).
-- Абзац 2: Детали происшествия — кто участвовал, что случилось, обстоятельства (2-3 предложения).
-- Абзац 3: Последствия — пострадавшие, ущерб, реакция властей (2-3 предложения).
-- Абзац 4: Что дальше — следствие, проверка, решения (1-2 предложения).
-
-ПРИМЕР ПРАВИЛЬНОГО ПОСТА:
-«🚗 Два человека пострадали в ДТП на трассе под Барнаулом
-
-Авария произошла вечером 2 октября на трассе Р-256 в районе села Калманка. Водитель автомобиля Toyota Corolla не справился с управлением и выехал на встречную полосу движения.
-
-По предварительным данным, в результате столкновения с грузовиком пострадали два человека — водитель и пассажир легковушки. Оба доставлены в больницу с травмами различной степени тяжести.
-
-На месте работали сотрудники ГИБДД и скорая помощь. Правоохранители устанавливают все обстоятельства произошедшего.»
-
-ТРЕБОВАНИЯ К ТЕКСТУ:
-- Официально-информационный тон, как у новостных агентств.
-- Сохрани ВСЕ факты, цифры, имена, должности и адреса.
-- Не выдумывай детали, которых нет в исходной новости.
-- В начале заголовка — ОДИН эмодзи: 🚨, 🚗, 🔥, 🚑, ⚠️ или 👮.
-- НЕ используй HTML, Markdown, символы < и >.
-- НЕ упоминай источник новости.
-
-Заголовок: {title}
-Текст: {summary}
-"""
-    try:
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=900
-        )
-        result = completion.choices[0].message.content.strip()
-        result = clean_html_entities(result)
+def beautify_text(title, summary):
+    """
+    НЕ переписывает текст! Только:
+    - Добавляет эмодзи в начало заголовка
+    - Разбивает на абзацы
+    - Убирает лишние символы
+    """
+    # Определяем эмодзи по типу новости
+    text_lower = (title + " " + summary).lower()
+    
+    if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул"]):
+        emoji = "🚗"
+    elif any(w in text_lower for w in ["пожар", "возгора", "горел", "сгорел", "огнеборц", "поджог"]):
+        emoji = "🔥"
+    elif any(w in text_lower for w in ["убийств", "убил", "труп", "нашли тело", "убийца"]):
+        emoji = "👮"
+    elif any(w in text_lower for w in ["пострадал", "госпитализ", "травм"]):
+        emoji = "🚑"
+    elif any(w in text_lower for w in ["взрыв", "взорвал", "хлопок"]):
+        emoji = "⚠️"
+    else:
+        emoji = "🚨"
+    
+    # Формируем заголовок
+    heading = f"{emoji} {title}"
+    
+    # Очищаем текст от лишнего
+    clean_summary = clean_html_entities(summary)
+    
+    # Разбиваем на абзацы по точкам, если текст длинный
+    # Ищем конец первого предложения после ~200 символов
+    if len(clean_summary) > 400:
+        # Разбиваем по предложениям
+        sentences = re.split(r'(?<=[.!?])\s+', clean_summary)
+        paragraphs = []
+        current = ""
+        for s in sentences:
+            if len(current) + len(s) > 300:
+                paragraphs.append(current.strip())
+                current = s
+            else:
+                current += " " + s
+        if current.strip():
+            paragraphs.append(current.strip())
         
-        # Если ИИ вернул СЛИШКОМ короткий текст (меньше 600 символов) — fallback на оригинал
-        if len(result) < 600:
-            print(f"⚠️ ИИ вернул короткий текст ({len(result)} символов). Используем оригинал.")
-            result = f"🚨 {title}\n\n{summary}"
-            if len(result) > 1400:
-                result = result[:1400]
-                last_dot = max(result.rfind('.'), result.rfind('!'), result.rfind('?'))
-                if last_dot > 800:
-                    result = result[:last_dot + 1]
-        
-        return result
-    except Exception as e:
-        print(f"Ошибка ИИ: {e}")
-        fallback = f"🚨 {title}\n\n{summary}"
-        if len(fallback) > 1400:
-            fallback = fallback[:1400]
-            last_dot = max(fallback.rfind('.'), fallback.rfind('!'), fallback.rfind('?'))
-            if last_dot > 800:
-                fallback = fallback[:last_dot + 1]
-        return fallback
+        body = "\n\n".join(paragraphs)
+    else:
+        body = clean_summary
+    
+    result = f"{heading}\n\n{body}"
+    
+    return result.strip()
 
 def smart_cut(text, limit):
-    """Обрезка по последней точке, а не посередине."""
+    """Обрезка по последней точке."""
     if len(text) <= limit:
         return text
     cut = text[:limit]
@@ -302,10 +291,9 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост с умной обрезкой и защитой от неполного текста."""
+    """Отправляет пост."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
-    # Резерв 200 символов под подпись
     MAX_CAPTION = 1024 - len(signature) - 50
     MAX_MSG = 4096 - len(signature) - 50
     
@@ -324,7 +312,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Иначе — раздельно: фото, потом текст
+    # Иначе — раздельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -336,7 +324,6 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст с умной обрезкой
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -417,17 +404,17 @@ def main():
             return
         
         print(f"Найдена ЧП-новость: {found_news['title']}")
-        print(f"GUID: {found_news['guid']}")
-        print(f"URL: {found_news['url']}")
+        print(f"Размер оригинала: {len(found_news['summary'])} символов")
         
         image_url = found_news['image']
         print(f"Картинка: {image_url}")
         
-        rewritten_text = rewrite_text(found_news['title'], found_news['summary'])
-        print(f"Текст ({len(rewritten_text)} символов)")
+        # Украшаем текст (без переписывания!)
+        beautified_text = beautify_text(found_news['title'], found_news['summary'])
+        print(f"Размер украшенного текста: {len(beautified_text)} символов")
         
         try:
-            send_to_telegram(rewritten_text, image_url)
+            send_to_telegram(beautified_text, image_url)
             print("Пост успешно отправлен!")
         except Exception as e:
             print(f"ОШИБКА при отправке: {e}")
