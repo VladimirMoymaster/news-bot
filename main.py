@@ -270,27 +270,39 @@ def rewrite_text(title, summary):
         return f"🚨 {title}\n\n{clean_html_entities(summary)}"
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост."""
+    """Отправляет пост. Текст НЕ обрезается в середине предложения."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
-    final_text = text + signature
-
-    if len(final_text) <= 1024 and image_url:
+    
+    # Резервируем 200 символов под подпись
+    MAX_TEXT_LEN = 1024 - len(signature) - 50  # для caption
+    MAX_MSG_LEN = 4096 - len(signature) - 50   # для обычного сообщения
+    
+    # Обрезаем по последней точке, а не посередине
+    def smart_cut(text, limit):
+        if len(text) <= limit:
+            return text
+        cut = text[:limit]
+        last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
+        if last_dot > limit * 0.5:
+            return cut[:last_dot + 1]
+        return cut
+    
+    # Если есть фото и текст влезает в caption — фото с caption
+    if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
-            data = {'chat_id': CHAT_ID, 'caption': final_text, 'parse_mode': 'HTML'}
+            data = {'chat_id': CHAT_ID, 'caption': text + signature, 'parse_mode': 'HTML'}
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото с caption):", r.status_code)
-            
             if r.status_code == 200:
                 return
-            
             print(f"Ошибка caption: {r.text}")
-            print("Fallback: отправляем раздельно...")
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
+    # Иначе — раздельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -302,7 +314,9 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    data = {'chat_id': CHAT_ID, 'text': final_text[:4096], 'parse_mode': 'HTML'}
+    # Текст с умной обрезкой
+    final_text = smart_cut(text, MAX_MSG_LEN) + signature
+    data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     r = requests.post(url, data=data, timeout=15)
     print("Telegram ответ (текст):", r.status_code)
@@ -310,11 +324,11 @@ def send_to_telegram(text, image_url=None):
     if r.status_code != 200:
         print(f"Ошибка HTML: {r.text}")
         plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
-        plain_text = text + plain_signature
+        plain_text = smart_cut(text, MAX_MSG_LEN) + plain_signature
         data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
         r2 = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (без HTML):", r2.status_code)
-
+        
 def load_published_keys():
     """Загружает список опубликованных ключей."""
     if os.path.exists(STATE_FILE):
