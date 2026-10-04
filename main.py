@@ -2,7 +2,8 @@ import os
 import feedparser
 import requests
 import re
-from groq import Groq
+from groq 
+import Groq
 import time  # ← добавь этот импорт в начало файла, если его нет
 
 # --- НАСТРОЙКИ ---
