@@ -3,6 +3,7 @@ import feedparser
 import requests
 import re
 from groq import Groq
+import time  # ← добавь этот импорт в начало файла, если его нет
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -299,12 +300,12 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост: короткий — фото с caption, длинный — раздельно."""
+    """Отправляет фото, ждёт 20 секунд, потом отправляет текст."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Если фото есть и текст влезает в caption (1024) — фото с caption
+    # Если фото есть и текст влезает в caption — фото с caption (без задержки)
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -319,7 +320,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Иначе — раздельно: фото, потом текст
+    # Иначе — раздельно с задержкой
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -328,10 +329,14 @@ def send_to_telegram(text, image_url=None):
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото):", r.status_code)
+            
+            # ⏱️ ЗАДЕРЖКА 20 СЕКУНД
+            print("⏱️ Ждём 20 секунд перед отправкой текста...")
+            time.sleep(20)
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст
+    # Текст отдельным сообщением
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -345,7 +350,7 @@ def send_to_telegram(text, image_url=None):
         data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
         r2 = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (без HTML):", r2.status_code)
-
+        
 def load_published_keys():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
