@@ -301,7 +301,7 @@ def smart_cut(text, limit):
 
 def send_to_telegram(text, image_url=None):
     """Отправляет фото, ждёт 20 секунд, потом отправляет текст."""
-    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
+    signature = '\n\n📌 <a href="https://max.ru/id5407466838_2_bot?startapp=5DJQ4rsiAnpXB6pH"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
