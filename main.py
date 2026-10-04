@@ -1,10 +1,9 @@
 import os
+import time
 import feedparser
 import requests
 import re
-from groq 
-import Groq
-import time  # ← добавь этот импорт в начало файла, если его нет
+from groq import Groq
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -321,7 +320,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Иначе — раздельно с задержкой
+    # Иначе — раздельно с задержкой 20 секунд
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -351,7 +350,7 @@ def send_to_telegram(text, image_url=None):
         data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
         r2 = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (без HTML):", r2.status_code)
-        
+
 def load_published_keys():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
