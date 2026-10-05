@@ -20,6 +20,7 @@ STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 30
 MAX_HISTORY = 100
+SIMILARITY_THRESHOLD = 0.7  # порог схожести заголовков (70%)
 
 # --- ТЕМАТИКА ЧП ---
 CHP_KEYWORDS = [
@@ -184,6 +185,32 @@ def is_chp_news(title, summary):
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     return has_chp
 
+def is_similar_title(title, published_titles):
+    """
+    Проверяет, похож ли заголовок на уже опубликованные.
+    Разбивает на слова (длиннее 3 букв) и считает % совпадения.
+    """
+    words = set(re.findall(r'\w+', title.lower()))
+    words = {w for w in words if len(w) > 3}
+    
+    if not words:
+        return False
+    
+    for published in published_titles:
+        published_words = set(re.findall(r'\w+', published.lower()))
+        published_words = {w for w in published_words if len(w) > 3}
+        
+        if not published_words:
+            continue
+        
+        common = words & published_words
+        similarity = len(common) / max(len(words), len(published_words))
+        
+        if similarity >= SIMILARITY_THRESHOLD:
+            return True
+    
+    return False
+
 def get_image_from_description(entry):
     if 'enclosures' in entry and len(entry.enclosures) > 0:
         for enc in entry.enclosures:
@@ -212,14 +239,12 @@ def parse_rss(url):
             title = entry.get('title', '')
             url_link = entry.get('link', '')
             guid = entry.get('id', url_link)
-            title_hash = re.sub(r'\W+', '', title.lower())[:60]
             
             news.append({
                 'title': title,
                 'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
                 'url': url_link,
                 'guid': guid,
-                'title_hash': title_hash,
                 'image': get_image_from_description(entry),
                 'source': url
             })
@@ -229,7 +254,6 @@ def parse_rss(url):
         return []
 
 def get_emoji(text_lower):
-    """Подбирает эмодзи по теме новости."""
     if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул", "наезд"]):
         return "🚗"
     if any(w in text_lower for w in ["пожар", "возгора", "горел", "сгорел", "огнеборц", "поджог"]):
@@ -243,9 +267,7 @@ def get_emoji(text_lower):
     return "🚨"
 
 def rewrite_text(title, summary):
-    """
-    Украшает текст через ИИ. Защита от отказов и сокращений.
-    """
+    """Украшает текст через ИИ. Защита от отказов и сокращений."""
     original_len = len(title) + len(summary)
     
     prompt = f"""
@@ -277,7 +299,6 @@ def rewrite_text(title, summary):
         result = completion.choices[0].message.content.strip()
         result = clean_html_entities(result)
         
-        # Защита от отказов ИИ
         refuse_markers = [
             "пришлите", "пришли", "мне нужен", "нужен более полный",
             "не хватает", "недостаточно", "для того чтобы",
@@ -287,8 +308,6 @@ def rewrite_text(title, summary):
         ]
         result_lower = result.lower()
         is_refusal = any(marker in result_lower for marker in refuse_markers)
-        
-        # Защита от сокращения
         is_too_short = len(result) < original_len * 0.7
         
         if is_refusal or is_too_short:
@@ -304,7 +323,6 @@ def rewrite_text(title, summary):
         return f"{emoji} {title}\n\n{summary}"
 
 def smart_cut(text, limit):
-    """Обрезка по последней точке."""
     if len(text) <= limit:
         return text
     cut = text[:limit]
@@ -319,7 +337,7 @@ def send_to_telegram(text, image_url=None):
     
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Если фото есть и текст влезает в caption — фото с caption (без задержки)
+    # Если фото есть и текст влезает в caption — фото с caption
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -344,13 +362,11 @@ def send_to_telegram(text, image_url=None):
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото):", r.status_code)
             
-            # ⏱️ ЗАДЕРЖКА 20 СЕКУНД
             print("⏱️ Ждём 20 секунд перед отправкой текста...")
             time.sleep(20)
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -388,6 +404,10 @@ def main():
         published_keys = load_published_keys()
         print(f"В памяти {len(published_keys)} опубликованных ключей.")
         
+        # Отдельно собираем опубликованные заголовки
+        published_titles = [k.replace("TITLE:", "") for k in published_keys if k.startswith("TITLE:")]
+        print(f"Опубликованных заголовков: {len(published_titles)}")
+        
         all_news = []
         for source in RSS_SOURCES:
             print(f"Загружаем {source}...")
@@ -407,16 +427,20 @@ def main():
             summary = news['summary']
             url = news['url']
             guid = news['guid']
-            title_hash = news['title_hash']
             
+            # 1. Проверка GUID
             if guid in published_keys:
                 print(f"Пропускаем (GUID уже был): {title[:50]}...")
                 continue
+            
+            # 2. Проверка URL
             if url in published_keys:
                 print(f"Пропускаем (URL уже был): {title[:50]}...")
                 continue
-            if title_hash in published_keys:
-                print(f"Пропускаем (заголовок уже был): {title[:50]}...")
+            
+            # 3. Проверка схожести заголовков (защита от дублей на разных сайтах)
+            if is_similar_title(title, published_titles):
+                print(f"Пропускаем (похожий заголовок уже был): {title[:50]}...")
                 continue
             
             if not is_chp_news(title, summary):
@@ -447,7 +471,7 @@ def main():
         finally:
             published_keys.append(found_news['guid'])
             published_keys.append(found_news['url'])
-            published_keys.append(found_news['title_hash'])
+            published_keys.append(f"TITLE:{found_news['title'][:100]}")
             save_published_keys(published_keys)
             print(f"Ключи сохранены. Всего в памяти: {len(published_keys)}")
     
