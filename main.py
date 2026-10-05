@@ -244,25 +244,25 @@ def get_emoji(text_lower):
 
 def rewrite_text(title, summary):
     """
-    ИИ РЕДАКТИРУЕТ (не пересказывает) — сохраняет все факты,
-    делает текст читаемым, добавляет эмодзи и разбивает на абзацы.
+    Украшает текст через ИИ. Защита от отказов и сокращений.
     """
     original_len = len(title) + len(summary)
     
     prompt = f"""
 Ты — редактор Telegram-канала о ЧП в Барнауле и Алтайском крае.
-Твоя задача — УКРАСИТЬ И СТРУКТУРИРОВАТЬ текст, СОХРАНИВ ВСЕ ФАКТЫ.
+Перепиши эту новость красиво и структурированно.
 
-ВАЖНЫЕ ПРАВИЛА:
-1. НЕ СОКРАЩАЙ! Сохрани все детали, цифры, имена, адреса, обстоятельства.
-2. Добавь ОДИН эмодзи в начало заголовка (🚗, 🔥, 👮, 🚑, ⚠️ или 🚨).
-3. Разбей текст на 3-4 абзаца (по 2-4 предложения).
-4. Сделай заголовок цепляющим, но без выдумок.
-5. Сохрани оригинальные формулировки там, где это важно (официальные фразы, цитаты).
-6. НЕ используй HTML, Markdown, символы < и >.
-7. НЕ упоминай источник новости.
+ЖЁСТКИЕ ПРАВИЛА:
+- НЕ сокращай текст. Сохрани все факты, цифры, имена, адреса.
+- Добавь ОДИН эмодзи в начало заголовка (🚗, 🔥, 👮, 🚑, ⚠️ или 🚨).
+- Разбей текст на 3-4 абзаца.
+- НЕ используй HTML, Markdown, символы < и >.
+- НЕ упоминай источник новости.
+- НЕ задавай вопросов. НЕ проси дополнительную информацию.
+- НЕ пиши фразы типа "пришлите", "мне нужно больше данных", "к сожалению".
+- Если информации мало — просто оформи то, что есть.
 
-ЦЕЛЬ: пост 800-1500 символов, в котором есть ВСЁ из оригинала, но читается легко.
+ЦЕЛЬ: пост 800-1500 символов, в котором есть ВСЁ из оригинала.
 
 Заголовок: {title}
 Текст: {summary}
@@ -277,9 +277,23 @@ def rewrite_text(title, summary):
         result = completion.choices[0].message.content.strip()
         result = clean_html_entities(result)
         
-        # Если ИИ сократил текст (меньше 70% от оригинала) — используем оригинал
-        if len(result) < original_len * 0.7:
-            print(f"⚠️ ИИ сократил текст ({len(result)} vs {original_len}). Используем оригинал.")
+        # Защита от отказов ИИ
+        refuse_markers = [
+            "пришлите", "пришли", "мне нужен", "нужен более полный",
+            "не хватает", "недостаточно", "для того чтобы",
+            "к сожалению", "я не могу", "требуется больше",
+            "дополнительную информацию", "оставшуюся часть",
+            "уточните", "расскажите больше", "пожалуйста, пришлите",
+        ]
+        result_lower = result.lower()
+        is_refusal = any(marker in result_lower for marker in refuse_markers)
+        
+        # Защита от сокращения
+        is_too_short = len(result) < original_len * 0.7
+        
+        if is_refusal or is_too_short:
+            reason = "отказ" if is_refusal else f"сокращение ({len(result)} vs {original_len})"
+            print(f"⚠️ ИИ: {reason}. Используем оригинал.")
             emoji = get_emoji((title + " " + summary).lower())
             result = f"{emoji} {title}\n\n{summary}"
         
@@ -300,8 +314,8 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет фото, ждёт 20 секунд, потом отправляет текст."""
-    signature = '\n\n📌 <a href="https://max.ru/id5407466838_2_bot?startapp=5DJQ4rsiAnpXB6pH"><b>Барнаул ЧП | Новости и Разборы</b></a>'
+    """Отправляет фото, ждёт 20 секунд, потом текст."""
+    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
@@ -336,7 +350,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст отдельным сообщением
+    # Текст
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
