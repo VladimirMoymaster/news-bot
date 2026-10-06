@@ -1,6 +1,3 @@
-https://altapress.ru/story/v-barnaule-osudili-rukovoditelya-firmi-za-hishchenie-byudzhetnih-sredstv-395031
-https://altapress.ru/story/s-oglyadkoy-kak-altayskie-upravlentsi-otsenivayut-samokatchikov-na-doroge-opros-395010
-https://altapress.ru/story/palliativnaya-pomoshch-v-altayskom-krae-chto-proishodit-posle-togo-kak-bolezn-stanovitsya-neizlechimoy-395038
 https://altapress.ru/story/ne-final-a-start-dispanserizatsiya-viyavila-pochti-tis-novih-sluchaev-zabolevaniy-v-altayskom-krae-394709
 https://altapress.ru/story/otopitelniy-sezon-v-razgare-no-goryachie-batarei-u-treti-barnaultsev-kuda-zvonit-395041
 https://altapress.ru/story/v-barnaule-bez-vodi-ostanutsya-polsotni-domov-395048
@@ -98,3 +95,6 @@ TITLE:Выяснилось, что произошло с пропавшей на
 https://altapress.ru/story/rossiyanin-ubil-i-raschlenil-sozhitelnitsu-i-ee-doch-podrobnosti-395286
 https://altapress.ru/story/rossiyanin-ubil-i-raschlenil-sozhitelnitsu-i-ee-doch-podrobnosti-395286
 TITLE:Россиянин убил и расчленил сожительницу и ее дочь. Подробности
+https://altai.aif.ru/society/altayskiy-kray-predstavil-opyt-po-zashchite-pozhilyh-ot-moshennikov
+https://altai.aif.ru/society/altayskiy-kray-predstavil-opyt-po-zashchite-pozhilyh-ot-moshennikov
+TITLE:Алтайский край представил опыт по защите пожилых от мошенников
