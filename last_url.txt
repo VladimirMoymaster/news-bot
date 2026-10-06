@@ -1,6 +1,3 @@
-https://altai.aif.ru/incidents/-tri-cheloveka-pogibli-pri-pozhare-v-chastnom-dome-v-aleyske
-https://altapress.ru/story/ot-shchebenki-do-perekrestkov-nazvani-samie-avariynie-mesta-v-altayskom-krae-394950
-https://altai.aif.ru/incidents/15-letniy-podrostok-v-barnaule-napal-s-nozhom-na-zhenshchinu-iz-za-dolga
 https://altapress.ru/story/igra-na-operezhenie-v-barnaule-proshel-kviz-dlya-shkolnikov-o-protivostoyanii-zavisimosti-395005
 https://altapress.ru/story/v-rubtsovske-pristavi-izjyali-land-cruiser-zhitelnitsi-za-dolg-po-elektroenergii-395074
 https://altapress.ru/story/v-parke-izumrudniy-rasskazhut-kak-zashchititsya-ot-bolezney-serdtsa-395085
@@ -98,3 +95,6 @@ TITLE:В Барнауле произошло смертельное ДТП с м
 https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
 https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
 TITLE:Мать погибшего в Барнауле велосипедиста рассказала подробности трагедии
+https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
+https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
+TITLE:В шоу "ВИА Суперстар! 3" случилось первое спасение. Кто счастливчик?
