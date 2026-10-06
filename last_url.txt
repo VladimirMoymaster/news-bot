@@ -1,6 +1,3 @@
-https://altapress.ru/story/igra-na-operezhenie-v-barnaule-proshel-kviz-dlya-shkolnikov-o-protivostoyanii-zavisimosti-395005
-https://altapress.ru/story/v-rubtsovske-pristavi-izjyali-land-cruiser-zhitelnitsi-za-dolg-po-elektroenergii-395074
-https://altapress.ru/story/v-parke-izumrudniy-rasskazhut-kak-zashchititsya-ot-bolezney-serdtsa-395085
 https://altai.aif.ru/society/zhiteli-biyska-pereveli-moshennikam-pochti-2-mln-rubley-za-nedelyu
 https://altai.aif.ru/society/v-altayskom-krae-za-sutki-proizoshlo-18-pozharov
 https://altapress.ru/story/biznesmena-iz-barnaula-arestovali-po-delu-o-hishchenii-byudzhetnih-sredstv-395136
@@ -98,3 +95,6 @@ TITLE:Мать погибшего в Барнауле велосипедиста
 https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
 https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
 TITLE:В шоу "ВИА Суперстар! 3" случилось первое спасение. Кто счастливчик?
+https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
+https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
+TITLE:Восемь человек пострадали в Горном Алтае при столкновении двух автомобилей
