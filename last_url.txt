@@ -1,6 +1,3 @@
-https://altapress.ru/story/ne-final-a-start-dispanserizatsiya-viyavila-pochti-tis-novih-sluchaev-zabolevaniy-v-altayskom-krae-394709
-https://altapress.ru/story/otopitelniy-sezon-v-razgare-no-goryachie-batarei-u-treti-barnaultsev-kuda-zvonit-395041
-https://altapress.ru/story/v-barnaule-bez-vodi-ostanutsya-polsotni-domov-395048
 https://altapress.ru/story/barnaulskiy-zoopark-otkril-besplatniy-vhod-na-nachalo-oktyabrya-395046
 https://altapress.ru/story/bolshe-kilogrammov-meda-ne-propustili-v-altayskiy-kray-395047
 https://altapress.ru/story/andrey-gorbunov-stal-luchshim-voditelem-altay-koksa-395060
@@ -98,3 +95,6 @@ TITLE:Россиянин убил и расчленил сожительницу
 https://altai.aif.ru/society/altayskiy-kray-predstavil-opyt-po-zashchite-pozhilyh-ot-moshennikov
 https://altai.aif.ru/society/altayskiy-kray-predstavil-opyt-po-zashchite-pozhilyh-ot-moshennikov
 TITLE:Алтайский край представил опыт по защите пожилых от мошенников
+https://altapress.ru/story/v-barnaule-proizoshlo-smertelnoe-dtp-s-mototsiklom-i-podrostkom-395293
+https://altapress.ru/story/v-barnaule-proizoshlo-smertelnoe-dtp-s-mototsiklom-i-podrostkom-395293
+TITLE:В Барнауле произошло смертельное ДТП с мотоциклом и подростком
