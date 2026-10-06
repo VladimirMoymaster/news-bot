@@ -1,6 +1,3 @@
-https://altai.aif.ru/society/zhiteli-biyska-pereveli-moshennikam-pochti-2-mln-rubley-za-nedelyu
-https://altai.aif.ru/society/v-altayskom-krae-za-sutki-proizoshlo-18-pozharov
-https://altapress.ru/story/biznesmena-iz-barnaula-arestovali-po-delu-o-hishchenii-byudzhetnih-sredstv-395136
 https://altapress.ru/story/na-altae-predupredili-o-shtrafah-za-lipovih-medvedey-395121
 https://altapress.ru/story/v-diagnosttsentre-altayskogo-kraya-snova-smenilsya-rukovoditel-395120
 https://altapress.ru/story/mashinist-na-altae-postradal-pri-padenii-bashennogo-krana-vracham-ugrozhali-395162
@@ -98,3 +95,6 @@ TITLE:В шоу "ВИА Суперстар! 3" случилось первое �
 https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
 https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
 TITLE:Восемь человек пострадали в Горном Алтае при столкновении двух автомобилей
+https://altapress.ru/story/v-barnaule-voznik-stihiyniy-memorial-na-meste-gibeli-podrostka-v-dtp-s-mototsiklom-novie-podrobnosti-395309
+https://altapress.ru/story/v-barnaule-voznik-stihiyniy-memorial-na-meste-gibeli-podrostka-v-dtp-s-mototsiklom-novie-podrobnosti-395309
+TITLE:В Барнауле возник стихийный мемориал на месте гибели подростка в ДТП с велосипедом. Новые подробност
