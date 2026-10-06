@@ -1,6 +1,3 @@
-https://altapress.ru/story/barnaulskiy-zoopark-otkril-besplatniy-vhod-na-nachalo-oktyabrya-395046
-https://altapress.ru/story/bolshe-kilogrammov-meda-ne-propustili-v-altayskiy-kray-395047
-https://altapress.ru/story/andrey-gorbunov-stal-luchshim-voditelem-altay-koksa-395060
 https://altai.aif.ru/incidents/-tri-cheloveka-pogibli-pri-pozhare-v-chastnom-dome-v-aleyske
 https://altapress.ru/story/ot-shchebenki-do-perekrestkov-nazvani-samie-avariynie-mesta-v-altayskom-krae-394950
 https://altai.aif.ru/incidents/15-letniy-podrostok-v-barnaule-napal-s-nozhom-na-zhenshchinu-iz-za-dolga
@@ -98,3 +95,6 @@ TITLE:Алтайский край представил опыт по защит�
 https://altapress.ru/story/v-barnaule-proizoshlo-smertelnoe-dtp-s-mototsiklom-i-podrostkom-395293
 https://altapress.ru/story/v-barnaule-proizoshlo-smertelnoe-dtp-s-mototsiklom-i-podrostkom-395293
 TITLE:В Барнауле произошло смертельное ДТП с мотоциклом и подростком
+https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
+https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
+TITLE:Мать погибшего в Барнауле велосипедиста рассказала подробности трагедии
