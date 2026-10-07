@@ -1,6 +1,3 @@
-https://altai.aif.ru/incidents/zhitel-novosibirskoy-oblasti-ukral-motocikl-na-altae-chtoby-uehat-domoy
-https://altapress.ru/story/nesovershennoletnyaya-iz-barnaula-pozhalovalas-na-voditelya-avtobusa-kotoriy-obmateril-ee-395177
-https://altapress.ru/story/na-altae-ishchut-muzhchinu-v-kamuflyazhnom-kostyume-395182
 https://cpanel.altapress.ru/story/na-altae-ishchut-muzhchinu-v-kamuflyazhnom-kostyume-395182
 https://altapress.ru/story/pyaniy-voditel-bez-prav-vrezalsya-v-mashinu-dps-v-tsentre-barnaula-395184
 https://altapress.ru/story/pyaniy-voditel-bez-prav-vrezalsya-v-mashinu-dps-v-tsentre-barnaula-395184
@@ -98,3 +95,6 @@ TITLE:Общественное пространство «три в одном»
 https://altapress.ru/story/pyat-medaley-propavshaya-biychanka-i-tragichnoe-dtp-chto-proizoshlo-na-altae-oktyabrya-395326
 https://altapress.ru/story/pyat-medaley-propavshaya-biychanka-i-tragichnoe-dtp-chto-proizoshlo-na-altae-oktyabrya-395326
 TITLE:Пять медалей, пропавшая бийчанка и трагичное ДТП. Что произошло на Алтае 6 октября
+https://altapress.ru/story/sobstvennikam-garazhey-v-barnaule-napravili-predpisaniya-o-snose-prichina-395349
+https://altapress.ru/story/sobstvennikam-garazhey-v-barnaule-napravili-predpisaniya-o-snose-prichina-395349
+TITLE:Собственникам гаражей в Барнауле направили предписания о сносе. Причина
