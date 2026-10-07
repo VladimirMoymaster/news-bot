@@ -439,4 +439,115 @@ def send_to_telegram(text, image_url=None):
             print("⏱️ Ждём 20 секунд перед отправкой текста...")
             time.sleep(20)
         except Exception as e:
-            print(f"Ошибка
+            print(f"Ошибка фото: {e}")
+    
+    final_text = smart_cut(text, MAX_MSG) + signature
+    data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    r = requests.post(url, data=data, timeout=15)
+    print("Telegram ответ (текст):", r.status_code)
+    
+    if r.status_code != 200:
+        print(f"Ошибка HTML: {r.text}")
+        plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
+        plain_text = smart_cut(text, MAX_MSG) + plain_signature
+        data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
+        r2 = requests.post(url, data=data, timeout=15)
+        print("Telegram ответ (без HTML):", r2.status_code)
+
+def load_published_keys():
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, "r") as f:
+            return [line.strip() for line in f.readlines() if line.strip()]
+    return []
+
+def save_published_keys(keys):
+    keys = keys[-MAX_HISTORY:]
+    with open(STATE_FILE, "w") as f:
+        f.write("\n".join(keys))
+
+def main():
+    if os.path.exists(LOCK_FILE):
+        print("Обнаружен параллельный запуск. Пропускаем.")
+        return
+    
+    with open(LOCK_FILE, "w") as f:
+        f.write("locked")
+    
+    try:
+        published_keys = load_published_keys()
+        print(f"В памяти {len(published_keys)} опубликованных ключей.")
+        
+        published_titles = [k.replace("TITLE:", "") for k in published_keys if k.startswith("TITLE:")]
+        print(f"Опубликованных заголовков: {len(published_titles)}")
+        
+        all_news = []
+        for source in RSS_SOURCES:
+            print(f"Загружаем {source}...")
+            news = parse_rss(source)
+            print(f"  → {len(news)} новостей")
+            all_news.extend(news)
+        
+        print(f"Всего новостей: {len(all_news)}")
+        
+        if not all_news:
+            print("Новостей не найдено.")
+            return
+        
+        found_news = None
+        for news in all_news:
+            title = news['title']
+            summary = news['summary']
+            url = news['url']
+            guid = news['guid']
+            
+            if guid in published_keys:
+                print(f"Пропускаем (GUID уже был): {title[:50]}...")
+                continue
+            
+            if url in published_keys:
+                print(f"Пропускаем (URL уже был): {title[:50]}...")
+                continue
+            
+            if is_similar_title(title, published_titles):
+                print(f"Пропускаем (похожий заголовок): {title[:50]}...")
+                continue
+            
+            if not is_chp_news(title, summary):
+                print(f"Пропускаем (не ЧП Алтая): {title[:50]}...")
+                continue
+            
+            found_news = news
+            break
+        
+        if not found_news:
+            print("Подходящих ЧП-новостей не найдено.")
+            return
+        
+        print(f"Найдена ЧП-новость: {found_news['title']}")
+        print(f"Размер оригинала: {len(found_news['summary'])} символов")
+        
+        image_url = found_news['image']
+        print(f"Картинка: {image_url}")
+        
+        post_text = rewrite_text(found_news['title'], found_news['summary'])
+        print(f"Размер поста: {len(post_text)} символов")
+        
+        try:
+            send_to_telegram(post_text, image_url)
+            print("Пост успешно отправлен!")
+        except Exception as e:
+            print(f"ОШИБКА при отправке: {e}")
+        finally:
+            published_keys.append(found_news['guid'])
+            published_keys.append(found_news['url'])
+            published_keys.append(f"TITLE:{found_news['title'][:100]}")
+            save_published_keys(published_keys)
+            print(f"Ключи сохранены. Всего в памяти: {len(published_keys)}")
+    
+    finally:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+
+if __name__ == "__main__":
+    main()
