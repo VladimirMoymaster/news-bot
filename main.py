@@ -9,11 +9,17 @@ from groq import Groq
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+VK_TOKEN = os.getenv("VK_TOKEN")  # Сервисный ключ ВК
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
     "https://altapress.ru/rss",
     "https://altai.aif.ru/rss/all.php",
+]
+
+# --- ГРУППЫ ВК (owner_id, для групп со знаком минус) ---
+VK_GROUPS = [
+    "-75554521",  # твоя группа
 ]
 
 STATE_FILE = "last_url.txt"
@@ -248,7 +254,7 @@ def is_chp_news(title, summary):
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
-    # 1. ГЕО-ПРОВЕРКА — обязательно про Алтайский край
+    # 1. ГЕО-ПРОВЕРКА
     has_geo = any(keyword in text for keyword in GEO_KEYWORDS)
     if not has_geo:
         return False
@@ -324,11 +330,69 @@ def parse_rss(url):
                 'url': url_link,
                 'guid': guid,
                 'image': get_image_from_description(entry),
-                'source': url
+                'source': 'rss'
             })
         return news
     except Exception as e:
         print(f"Ошибка загрузки {url}: {e}")
+        return []
+
+def parse_vk(group_id, count=30):
+    """Парсит посты из группы ВК через API."""
+    if not VK_TOKEN:
+        print("VK_TOKEN не задан, пропускаем ВК")
+        return []
+    
+    url = "https://api.vk.com/method/wall.get"
+    params = {
+        "owner_id": group_id,
+        "count": count,
+        "access_token": VK_TOKEN,
+        "v": "5.199"
+    }
+    
+    try:
+        response = requests.get(url, params=params, timeout=20)
+        data = response.json()
+        
+        if "error" in data:
+            print(f"Ошибка ВК: {data['error'].get('error_msg', 'unknown')}")
+            return []
+        
+        news = []
+        items = data.get("response", {}).get("items", [])
+        for post in items:
+            # Пропускаем рекламу и пустые посты
+            if post.get("marked_as_ads") or not post.get("text"):
+                continue
+            
+            text = post["text"]
+            # Первые 100 символов как заголовок
+            title = text[:100].strip()
+            if not title:
+                continue
+            
+            # Ищем картинку
+            image_url = None
+            if "attachments" in post:
+                for attach in post["attachments"]:
+                    if attach["type"] == "photo":
+                        sizes = attach["photo"].get("sizes", [])
+                        if sizes:
+                            image_url = max(sizes, key=lambda x: x["width"])["url"]
+                            break
+            
+            news.append({
+                'title': title,
+                'summary': clean_html_entities(text),
+                'url': f"https://vk.com/wall{group_id}_{post['id']}",
+                'guid': f"vk_{group_id}_{post['id']}",
+                'image': image_url,
+                'source': 'vk'
+            })
+        return news
+    except Exception as e:
+        print(f"Ошибка ВК: {e}")
         return []
 
 def get_emoji(text_lower):
@@ -482,10 +546,19 @@ def main():
         print(f"Опубликованных заголовков: {len(published_titles)}")
         
         all_news = []
+        
+        # RSS источники
         for source in RSS_SOURCES:
-            print(f"Загружаем {source}...")
+            print(f"Загружаем RSS {source}...")
             news = parse_rss(source)
             print(f"  → {len(news)} новостей")
+            all_news.extend(news)
+        
+        # ВК источники
+        for vk_group in VK_GROUPS:
+            print(f"Загружаем ВК {vk_group}...")
+            news = parse_vk(vk_group)
+            print(f"  → {len(news)} постов")
             all_news.extend(news)
         
         print(f"Всего новостей: {len(all_news)}")
@@ -525,6 +598,7 @@ def main():
             return
         
         print(f"Найдена ЧП-новость: {found_news['title']}")
+        print(f"Источник: {found_news['source']}")
         print(f"Размер оригинала: {len(found_news['summary'])} символов")
         
         image_url = found_news['image']
