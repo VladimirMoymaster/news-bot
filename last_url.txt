@@ -1,7 +1,3 @@
-TITLE:В шоу "ВИА Суперстар! 3" случилось первое спасение. Кто счастливчик?
-https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
-https://altai.aif.ru/incidents/dtp/vosem-chelovek-postradali-v-gornom-altae-pri-stolknovenii-dvuh-avtomobiley
-TITLE:Восемь человек пострадали в Горном Алтае при столкновении двух автомобилей
 https://altapress.ru/story/v-barnaule-voznik-stihiyniy-memorial-na-meste-gibeli-podrostka-v-dtp-s-mototsiklom-novie-podrobnosti-395309
 https://altapress.ru/story/v-barnaule-voznik-stihiyniy-memorial-na-meste-gibeli-podrostka-v-dtp-s-mototsiklom-novie-podrobnosti-395309
 TITLE:В Барнауле возник стихийный мемориал на месте гибели подростка в ДТП с велосипедом. Новые подробност
@@ -98,5 +94,9 @@ TITLE:Медведь напал на подростка на пасеке
 vk_-75554521_93126
 https://vk.com/wall-75554521_93126
 TITLE:Жительница Барнаула оштрафована за оскорбление директора школы
-
 Находясь в кабинете директора, женщи
+vk_-75554521_93122
+https://vk.com/wall-75554521_93122
+TITLE:⚖ Барнаульский маньяк вновь пытается оспорить приговор
+
+В октябре прошлого года Манишина признали ви
