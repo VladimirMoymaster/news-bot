@@ -1,7 +1,3 @@
-https://altapress.ru/story/v-barnaule-proizoshlo-smertelnoe-dtp-s-mototsiklom-i-podrostkom-395293
-TITLE:В Барнауле произошло смертельное ДТП с мотоциклом и подростком
-https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
-https://altai.aif.ru/incidents/mat-pogibshego-v-barnaule-velosipedista-rasskazala-podrobnosti-tragedii
 TITLE:Мать погибшего в Барнауле велосипедиста рассказала подробности трагедии
 https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
 https://altapress.ru/khz/story/v-shou-via-superstar-sluchilos-pervoe-spasenie-kto-schastlivchik-395270
@@ -98,5 +94,7 @@ TITLE:В Барнауле задержан мужчина, похитивший 
 vk_-75554521_93128
 https://vk.com/wall-75554521_93128
 TITLE:Дорожного рабочего из Барнаула сбили на Алтае
-
 ДТП произошло 29 сентября в час ночи возле села Манже
+https://altai.aif.ru/incidents/deti-v-opasnosti-ogolodavshie-medvedi-podbirayutsya-k-lyudyam
+https://altai.aif.ru/incidents/deti-v-opasnosti-ogolodavshie-medvedi-podbirayutsya-k-lyudyam
+TITLE:Медведь напал на подростка на пасеке
