@@ -1,7 +1,3 @@
-TITLE:Турист пытался отпугнуть паука огнем и сжег виллу
-https://altai.aif.ru/incidents/na-altae-vyyavlen-vtoroy-sluchay-trihinelleza-sredi-medvedey
-https://altai.aif.ru/incidents/na-altae-vyyavlen-vtoroy-sluchay-trihinelleza-sredi-medvedey
-TITLE:На Алтае выявлен второй случай трихинеллеза среди медведей
 https://altapress.ru/story/posle-krasnoy-knopki-na-gosuslugah-poyavitsya-zelenaya-395366
 https://altapress.ru/story/posle-krasnoy-knopki-na-gosuslugah-poyavitsya-zelenaya-395366
 TITLE:После «красной кнопки» на «Госуслугах» появится «зеленая»
@@ -97,6 +93,8 @@ https://altai.aif.ru/incidents/227-dtp-s-uchastiem-pyanyh-voditeley-proizoshlo-n
 TITLE:За 8 октября в Алтайском крае в ДТП погибли два человека
 vk_-75554521_93166
 https://vk.com/wall-75554521_93166
-TITLE:ДТП с двумя погибшими произошло накануне вечером в Зональном районе. 
-
+TITLE:ДТП с двумя погибшими произошло накануне вечером в Зональном районе.
 Как сообщили в региональной Г
+https://altai.aif.ru/incidents/pozharnye-spasli-muzhchinu-iz-ohvachennoy-ognem-kvartiry-v-zmeinogorske
+https://altai.aif.ru/incidents/pozharnye-spasli-muzhchinu-iz-ohvachennoy-ognem-kvartiry-v-zmeinogorske
+TITLE:На Алтае за сутки ликвидировали 16 пожаров и спасли жилой дом
