@@ -1,6 +1,3 @@
-https://altapress.ru/story/chto-izvestno-o-posledstviyah-dlya-chernogo-morya-posle-pozhara-na-tankere-i-ih-likvidatsii-395383
-TITLE:Что известно о последствиях для Черного моря после пожара на танкере
-https://altai.aif.ru/society/v-chemalskom-rayone-vveli-rezhim-povyshennoy-gotovnosti-iz-za-medvedey
 https://altai.aif.ru/society/v-chemalskom-rayone-vveli-rezhim-povyshennoy-gotovnosti-iz-za-medvedey
 TITLE:В Республике Алтай с начала года отстреляли 187 медведей
 https://altai.aif.ru/society/zheleznodorozhniki-pozdravili-s-vypiskoy-zhenshchinu-nachavshuyu-rozhat-v-poezde
@@ -98,3 +95,6 @@ TITLE:Полиция задержала серийного вора велоси
 https://altai.aif.ru/politic/na-altae-umenshilos-chislo-sluchaev-internet-moshennichestva
 https://altai.aif.ru/politic/na-altae-umenshilos-chislo-sluchaev-internet-moshennichestva
 TITLE:В Барнауле пенсионерка отдала мошенникам свыше 1,5 млн рублей
+https://altai.aif.ru/incidents/otzyvchivaya-devushka-hotela-vyruchit-nachalnicu-no-pomogla-moshennikam
+https://altai.aif.ru/incidents/otzyvchivaya-devushka-hotela-vyruchit-nachalnicu-no-pomogla-moshennikam
+TITLE:На Алтае с начала года мошенники выманили у граждан 96 млн рублей
