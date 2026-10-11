@@ -20,8 +20,8 @@ RSS_SOURCES = [
 ]
 
 VK_GROUPS = [
-    "-75554521",   # твоя первая группа
-    "-221195646",  # новая группа
+    "-75554521",
+    "-221195646",
 ]
 
 STATE_FILE = "last_url.txt"
@@ -263,22 +263,18 @@ def is_chp_news(title, summary):
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
-    # 1. ОБЯЗАТЕЛЬНАЯ гео-проверка
     has_geo = any(keyword in text for keyword in GEO_KEYWORDS)
     if not has_geo:
         return False
     
-    # 2. HARD_EXCLUDE только по заголовку
     for exclude in HARD_EXCLUDE:
         if exclude in title_lower:
             return False
     
-    # 3. ЧП-слово в заголовке
     chp_in_title = any(keyword in title_lower for keyword in CHP_KEYWORDS)
     if chp_in_title:
         return True
     
-    # 4. ЧП-слово в тексте
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     return has_chp
 
@@ -419,23 +415,44 @@ def get_emoji(text_lower):
     return "🚨"
 
 def rewrite_text(title, summary):
+    """Переписывает новость: жирный заголовок + текст."""
     original_len = len(title) + len(summary)
     
     prompt = f"""
-Ты — редактор Telegram-канала о ЧП в Барнауле и Алтайском крае.
-Перепиши эту новость красиво и структурированно.
+Ты — редактор Telegram-канала «Барнаул ЧП | Новости и Разборы».
+Пиши в современном смешанном стиле: факты + лёгкая подача, но с уважением к трагедиям.
 
-ЖЁСТКИЕ ПРАВИЛА:
+ФОРМАТ ОТВЕТА:
+- Первая строка — ЗАГОЛОВОК с эмодзи в начале.
+- Заголовок нужно обернуть в HTML-тег <b>...</b>, чтобы он был жирным.
+- Пустая строка после заголовка.
+- Затем 3-4 абзаца обычного текста (без HTML-тегов).
+- Каждый абзац — 2-3 предложения.
+- НЕ используй разделители (━━━), списки (•, ▪️), маркеры.
+
+ПРИМЕР ПРАВИЛЬНОГО ОТВЕТА:
+<b>🚗 ДТП на Ленина: двое пострадавших</b>
+
+В Барнауле на проспекте Ленина произошло серьёзное ДТП. Водитель «Тойоты» не справился с управлением и столкнулся с другой машиной.
+
+В результате аварии пострадали два человека. Их доставили в больницу с травмами различной степени тяжести.
+
+По данным ГИБДД, причиной могла стать высокая скорость. На месте работают инспекторы, движение на участке затруднено.
+
+СТИЛЬ:
+- Современный, живой, но уважительный.
+- Факты + лёгкая подача.
+- Без жаргона («тачка», «разложился»).
+- Без смайликов (😂😍🥰) — только тематические эмодзи (🚗🔥👮🚑⚠️🚨).
+- Без шуток про погибших и пострадавших.
+
+ПРАВИЛА:
 - НЕ сокращай текст. Сохрани все факты, цифры, имена, адреса.
-- Добавь ОДИН эмодзи в начало заголовка (🚗, 🔥, 👮, 🚑, ⚠️ или 🚨).
-- Разбей текст на 3-4 абзаца.
-- НЕ используй HTML, Markdown, символы < и >.
+- НЕ используй Markdown (**, *, __).
+- НЕ используй символы < и > в тексте (только в теге <b> для заголовка).
 - НЕ упоминай источник новости.
-- НЕ задавай вопросов. НЕ проси дополнительную информацию.
-- НЕ пиши фразы типа "пришлите", "мне нужно больше данных", "к сожалению".
-- Если информации мало — просто оформи то, что есть.
-
-ЦЕЛЬ: пост 800-1500 символов, в котором есть ВСЁ из оригинала.
+- НЕ задавай вопросов.
+- Длина: 800-1500 символов.
 
 Заголовок: {title}
 Текст: {summary}
@@ -448,30 +465,46 @@ def rewrite_text(title, summary):
             max_tokens=2000
         )
         result = completion.choices[0].message.content.strip()
-        result = clean_html_entities(result)
+        
+        # ⚠️ НЕ применяем clean_html_entities к результату —
+        # это удалит тег <b> из заголовка
+        
+        # Убираем лишние < и >, кроме тега <b> и </b>
+        result = re.sub(r'<(?!b>|/b>)', '', result)
+        result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
+        
+        # Убираем упоминания источников (но не трогаем <b>)
+        result = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
+        
+        for source in ['Банкфакс', 'Алтапресс', 'АиФ', 'Толк', 'Амител', 'Катунь 24', 'Вести22']:
+            result = result.replace(f'«{source}»', '')
+            result = result.replace(source, '')
+        
+        result = re.sub(r'[ \t]+', ' ', result).strip()
+        result = re.sub(r'\n{3,}', '\n\n', result)
         
         refuse_markers = [
-            "пришлите", "пришли", "мне нужен", "нужен более полный",
-            "не хватает", "недостаточно", "для того чтобы",
-            "к сожалению", "я не могу", "требуется больше",
-            "дополнительную информацию", "оставшуюся часть",
-            "уточните", "расскажите больше", "пожалуйста, пришлите",
+            "пришлите", "пришли", "мне нужен", "не хватает",
+            "недостаточно", "к сожалению", "я не могу",
+            "уточните", "расскажите больше",
         ]
         result_lower = result.lower()
         is_refusal = any(marker in result_lower for marker in refuse_markers)
-        is_too_short = len(result) < original_len * 0.7
+        is_too_short = len(result) < original_len * 0.5
         
         if is_refusal or is_too_short:
-            reason = "отказ" if is_refusal else f"сокращение ({len(result)} vs {original_len})"
+            reason = "отказ" if is_refusal else f"сокращение"
             print(f"⚠️ ИИ: {reason}. Используем оригинал.")
             emoji = get_emoji((title + " " + summary).lower())
-            result = f"{emoji} {title}\n\n{summary}"
+            result = f"<b>{emoji} {title}</b>\n\n{summary}"
         
         return result
     except Exception as e:
         print(f"Ошибка ИИ: {e}")
         emoji = get_emoji((title + " " + summary).lower())
-        return f"{emoji} {title}\n\n{summary}"
+        return f"<b>{emoji} {title}</b>\n\n{summary}"
 
 def smart_cut(text, limit):
     if len(text) <= limit:
@@ -483,10 +516,12 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
+    """Отправляет пост: если текст > 1024 и есть фото — раздельно."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
+    # Короткий текст + фото → одним сообщением
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -501,6 +536,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
+    # Длинный текст + фото → раздельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -523,9 +559,11 @@ def send_to_telegram(text, image_url=None):
     
     if r.status_code != 200:
         print(f"Ошибка HTML: {r.text}")
+        # Fallback без HTML
+        plain_text = re.sub(r'<[^>]+>', '', text)
         plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
-        plain_text = smart_cut(text, MAX_MSG) + plain_signature
-        data = {'chat_id': CHAT_ID, 'text': plain_text[:4096]}
+        final_plain = smart_cut(plain_text, MAX_MSG) + plain_signature
+        data = {'chat_id': CHAT_ID, 'text': final_plain[:4096]}
         r2 = requests.post(url, data=data, timeout=15)
         print("Telegram ответ (без HTML):", r2.status_code)
 
@@ -569,7 +607,6 @@ def main():
             print(f"  → {len(news)} постов")
             all_news.extend(news)
         
-        # ⚠️ СОРТИРУЕМ по дате — самые свежие первыми
         all_news.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
         
         print(f"Всего новостей: {len(all_news)}")
@@ -588,15 +625,15 @@ def main():
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
             if guid in published_keys:
-                print(f"[{pub_date}] Пропускаем (GUID уже был): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (GUID): {title[:50]}...")
                 continue
             
             if url in published_keys:
-                print(f"[{pub_date}] Пропускаем (URL уже был): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (URL): {title[:50]}...")
                 continue
             
             if is_similar_title(title, published_titles):
-                print(f"[{pub_date}] Пропускаем (похожий заголовок): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (похожий): {title[:50]}...")
                 continue
             
             if not news.get('image'):
@@ -616,7 +653,6 @@ def main():
         
         print(f"Найдена ЧП-новость: {found_news['title']}")
         print(f"Источник: {found_news['source']}")
-        print(f"Размер оригинала: {len(found_news['summary'])} символов")
         
         image_url = found_news['image']
         print(f"Картинка: {image_url}")
