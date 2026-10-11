@@ -15,7 +15,6 @@ VK_TOKEN = os.getenv("VK_TOKEN")
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
-    "https://altapress.ru/rss",
     "https://altai.aif.ru/rss/all.php",
 ]
 
