@@ -1,8 +1,10 @@
 import os
 import time
+import time as time_module
 import feedparser
 import requests
 import re
+from datetime import datetime
 from groq import Groq
 
 # --- НАСТРОЙКИ ---
@@ -13,21 +15,22 @@ VK_TOKEN = os.getenv("VK_TOKEN")
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
+    "https://altapress.ru/rss",
     "https://altai.aif.ru/rss/all.php",
 ]
 
 VK_GROUPS = [
-    "-75554521",
-    "-221195646",
+    "-75554521",   # твоя первая группа
+    "-221195646",  # новая группа
 ]
 
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
-NEWS_PER_SOURCE = 30
+NEWS_PER_SOURCE = 5
 MAX_HISTORY = 100
 SIMILARITY_THRESHOLD = 0.7
 
-# --- ГЕОГРАФИЯ (только Алтайский край) ---
+# --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
     "барнаул", "барнауле", "барнаула", "барнаульск", "барнаульцы", "барнаульцев",
     "бийск", "бийске", "бийска", "бийский", "бийского", "бийском", "бийчане",
@@ -136,42 +139,30 @@ CHP_KEYWORDS = [
     "сошли с рельсов", "сход с рельсов", "аварийн",
 ]
 
-# --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ (только для заголовков при сильных ЧП) ---
+# --- ЖЁСТКИЕ ИСКЛЮЧЕНИЯ ---
 HARD_EXCLUDE = [
-    # Погода
     "погода", "прогноз", "осадки", "снегопад", "гололёд", "гололед",
     "магнитная буря", "потепление", "похолодание",
-    # Культура
     "культура", "концерт", "выставка", "театр", "музей", "фестиваль",
     "спектакль", "премьера", "библиотека", "экскурсия",
     "ярмарка", "праздник", "парад", "салют", "рок-фестиваль",
-    # Спорт
     "футбол", "хоккей", "олимпиада", "чемпионат", "турнир",
     "соревнование", "тренировка",
-    # Еда
     "кулинария", "рецепт", "ресторан", "кафе", "меню", "блюдо",
-    # Экономика
     "экономика", "курс валют", "доллар", "евро", "биржа", "акции",
     "кредит", "ипотека", "вклад", "инфляция", "пенсия", "осаго",
-    # Политика
     "политика", "госдума", "депутат", "выборы", "заксобрание",
     "правительство", "путин", "президент",
-    # Туризм
     "отпуск", "туризм", "путешествие", "курорт", "санаторий",
     "турмаршрут", "турпоток",
-    # Медицина
     "лекция", "семинар", "вебинар", "мастер-класс",
     "профилактика", "вакцинация", "прививка", "диспансеризация",
     "чекап", "маммография",
-    # Мероприятия
     "анонс", "мероприятие", "форум", "конференция", "презентация",
     "субботник", "месячник",
-    # Транспорт
     "расписание", "маршрут", "ремонт дорог", "благоустройство",
     "озеленение", "ограничение движения", "перекрытие движения",
-    # Реклама
     "скидка", "распродажа", "подарок", "розыгрыш",
-    # --- ГОРОДА РФ ---
     "новосибирск", "красноярск", "кемерово", "томск", "омск",
     "екатеринбург", "свердловск", "челябинск", "тюмень",
     "иркутск", "улан-удэ", "чита", "якутск", "хабаровск",
@@ -185,7 +176,6 @@ HARD_EXCLUDE = [
     "йошкар-ола", "киров", "сыктывкар", "петрозаводск",
     "вологда", "ярославль", "кострома", "иваново", "владимир",
     "тверь", "новгород", "псков", "орел", "курск", "белгород",
-    # --- РЕГИОНЫ РФ ---
     "тува", "тыва", "кызыл", "хакасия", "абакан",
     "бурятия", "забайкаль", "якутия", "саха",
     "омская область", "томская область",
@@ -200,7 +190,6 @@ HARD_EXCLUDE = [
     "калмыкия", "дагестан", "чечня", "ингушетия",
     "кабардино-балкария", "карачаево-черкесия",
     "северная осетия", "адыгея", "крым", "севастополь",
-    # --- РЕЛИГИОЗНЫЕ ОБЪЕКТЫ ---
     "храм", "церковь", "мечеть", "синагога", "монастырь",
     "буддийский", "буддийского", "буддизм",
     "православн", "мусульман", "иудейск",
@@ -210,12 +199,10 @@ HARD_EXCLUDE = [
     "культурное наследие", "духовное наследие",
     "памятник архитектуры", "памятник культуры",
     "утрата", "соболезнования",
-    # --- ГОСУСЛУГИ ---
     "госуслуг", "госуслуги", "госуслугах", "госуслугам",
     "портал госуслуг", "красная кнопка", "зеленая кнопка", "зелёная кнопка",
     "госсервис", "госсервисы", "электронные услуги",
     "цифровизация", "цифровые сервисы",
-    # --- ФЕДЕРАЛЬНЫЕ НОВОСТИ ---
     "разработчики", "разработка", "внедрение",
     "запустят", "новая функция",
     "в россии", "по россии", "россияне", "россиян",
@@ -273,43 +260,23 @@ def clean_html_entities(text):
     return text
 
 def is_chp_news(title, summary):
-    """Проверка на ЧП в Алтайском крае."""
     text = (title + " " + summary).lower()
     title_lower = title.lower()
     
-    # СИЛЬНЫЕ ЧП-слова — если в заголовке, пропускаем без жёсткой гео-проверки
-    STRONG_CHP_IN_TITLE = [
-        "дтп", "авария", "сбил", "столкнов", "врезал", "влетел",
-        "перевернул", "опрокинул", "погиб", "пострадал", "госпитализ",
-        "пожар", "возгора", "сгорел", "взрыв", "взорвал",
-        "убийств", "убил", "труп", "нашли тело",
-        "ограбил", "кража", "украли", "мошенник",
-        "напал", "избил", "драка", "нож", "выстрел", "стрельб",
-        "осудили", "приговор", "задержан", "арестован",
-        "чп", "трагедия", "катастрофа", "обрушен",
-        "утонул", "пропал", "розыск", "спасли",
-        "несчастный случай", "отравился",
-        "сошли с рельсов", "сход с рельсов", "аварийн",
-    ]
-    
-    # 1. Если сильное ЧП в заголовке — пропускаем,
-    # HARD_EXCLUDE проверяем ТОЛЬКО по заголовку
-    strong_in_title = any(word in title_lower for word in STRONG_CHP_IN_TITLE)
-    if strong_in_title:
-        for exclude in HARD_EXCLUDE:
-            if exclude in title_lower:
-                return False
-        return True
-    
-    # 2. Иначе — проверяем гео
+    # 1. ОБЯЗАТЕЛЬНАЯ гео-проверка
     has_geo = any(keyword in text for keyword in GEO_KEYWORDS)
     if not has_geo:
         return False
     
-    # 3. HARD_EXCLUDE по всему тексту (для не-сильных ЧП)
+    # 2. HARD_EXCLUDE только по заголовку
     for exclude in HARD_EXCLUDE:
-        if exclude in text:
+        if exclude in title_lower:
             return False
+    
+    # 3. ЧП-слово в заголовке
+    chp_in_title = any(keyword in title_lower for keyword in CHP_KEYWORDS)
+    if chp_in_title:
+        return True
     
     # 4. ЧП-слово в тексте
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
@@ -366,20 +333,24 @@ def parse_rss(url):
             url_link = entry.get('link', '')
             guid = entry.get('id', url_link)
             
+            published = entry.get('published_parsed') or entry.get('updated_parsed')
+            pub_timestamp = time_module.mktime(published) if published else 0
+            
             news.append({
                 'title': title,
                 'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
                 'url': url_link,
                 'guid': guid,
                 'image': get_image_from_description(entry),
-                'source': 'rss'
+                'source': 'rss',
+                'timestamp': pub_timestamp
             })
         return news
     except Exception as e:
         print(f"Ошибка загрузки {url}: {e}")
         return []
 
-def parse_vk(group_id, count=30):
+def parse_vk(group_id, count=5):
     if not VK_TOKEN:
         print("VK_TOKEN не задан, пропускаем ВК")
         return []
@@ -397,7 +368,7 @@ def parse_vk(group_id, count=30):
         data = response.json()
         
         if "error" in data:
-            print(f"Ошибка ВК: {data['error'].get('error_msg', 'unknown')}")
+            print(f"Ошибка ВК {group_id}: {data['error'].get('error_msg', 'unknown')}")
             return []
         
         news = []
@@ -426,11 +397,12 @@ def parse_vk(group_id, count=30):
                 'url': f"https://vk.com/wall{group_id}_{post['id']}",
                 'guid': f"vk_{group_id}_{post['id']}",
                 'image': image_url,
-                'source': 'vk'
+                'source': f'vk_{group_id}',
+                'timestamp': post.get('date', 0)
             })
         return news
     except Exception as e:
-        print(f"Ошибка ВК: {e}")
+        print(f"Ошибка ВК {group_id}: {e}")
         return []
 
 def get_emoji(text_lower):
@@ -473,7 +445,7 @@ def rewrite_text(title, summary):
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
-            max_tokens=1500
+            max_tokens=2000
         )
         result = completion.choices[0].message.content.strip()
         result = clean_html_entities(result)
@@ -597,6 +569,9 @@ def main():
             print(f"  → {len(news)} постов")
             all_news.extend(news)
         
+        # ⚠️ СОРТИРУЕМ по дате — самые свежие первыми
+        all_news.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+        
         print(f"Всего новостей: {len(all_news)}")
         
         if not all_news:
@@ -610,24 +585,26 @@ def main():
             url = news['url']
             guid = news['guid']
             
+            pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
+            
             if guid in published_keys:
-                print(f"Пропускаем (GUID уже был): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (GUID уже был): {title[:50]}...")
                 continue
             
             if url in published_keys:
-                print(f"Пропускаем (URL уже был): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (URL уже был): {title[:50]}...")
                 continue
             
             if is_similar_title(title, published_titles):
-                print(f"Пропускаем (похожий заголовок): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (похожий заголовок): {title[:50]}...")
                 continue
             
             if not news.get('image'):
-                print(f"Пропускаем (нет картинки): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (нет картинки): {title[:50]}...")
                 continue
             
             if not is_chp_news(title, summary):
-                print(f"Пропускаем (не ЧП Алтая): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (не ЧП Алтая): {title[:50]}...")
                 continue
             
             found_news = news
