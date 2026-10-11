@@ -18,6 +18,7 @@ RSS_SOURCES = [
 
 VK_GROUPS = [
     "-75554521",
+    "-221195646",
 ]
 
 STATE_FILE = "last_url.txt"
