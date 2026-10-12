@@ -465,9 +465,6 @@ def rewrite_text(title, summary):
         )
         result = completion.choices[0].message.content.strip()
         
-        # ⚠️ НЕ применяем clean_html_entities к результату —
-        # это удалит тег <b> из заголовка
-        
         # Убираем лишние < и >, кроме тега <b> и </b>
         result = re.sub(r'<(?!b>|/b>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
@@ -515,12 +512,12 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост: если текст > 1024 и есть фото — раздельно."""
+    """Отправляет пост. Если фото нет — только текст."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Короткий текст + фото → одним сообщением
+    # Если есть фото и текст влезает в caption
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -535,7 +532,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Длинный текст + фото → раздельно
+    # Если есть фото, но текст длинный — раздельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -550,6 +547,7 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
+    # Текст (с фото или без)
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -558,7 +556,6 @@ def send_to_telegram(text, image_url=None):
     
     if r.status_code != 200:
         print(f"Ошибка HTML: {r.text}")
-        # Fallback без HTML
         plain_text = re.sub(r'<[^>]+>', '', text)
         plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
         final_plain = smart_cut(plain_text, MAX_MSG) + plain_signature
@@ -635,9 +632,8 @@ def main():
                 print(f"[{pub_date}] Пропускаем (похожий): {title[:50]}...")
                 continue
             
-            if not news.get('image'):
-                print(f"[{pub_date}] Пропускаем (нет картинки): {title[:50]}...")
-                continue
+            # ⚠️ ПРОВЕРКА "НЕТ КАРТИНКИ" УДАЛЕНА
+            # Теперь бот публикует даже без фото
             
             if not is_chp_news(title, summary):
                 print(f"[{pub_date}] Пропускаем (не ЧП Алтая): {title[:50]}...")
@@ -652,9 +648,9 @@ def main():
         
         print(f"Найдена ЧП-новость: {found_news['title']}")
         print(f"Источник: {found_news['source']}")
+        print(f"Картинка: {found_news.get('image') or 'НЕТ'}")
         
-        image_url = found_news['image']
-        print(f"Картинка: {image_url}")
+        image_url = found_news.get('image')
         
         post_text = rewrite_text(found_news['title'], found_news['summary'])
         print(f"Размер поста: {len(post_text)} символов")
