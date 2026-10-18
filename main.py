@@ -26,8 +26,8 @@ VK_GROUPS = [
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 5
-MAX_HISTORY = 100
-SIMILARITY_THRESHOLD = 0.7
+MAX_HISTORY = 200  # Увеличили историю (было 100)
+SIMILARITY_THRESHOLD = 0.80  # Увеличили порог схожести (было 0.7)
 
 # --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
@@ -277,6 +277,11 @@ def is_chp_news(title, summary):
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     return has_chp
 
+def get_text_hash(text):
+    """Жёсткий хеш текста для проверки на дубли (первые 150 символов, без пробелов)"""
+    clean = re.sub(r'\s+', '', text.lower())[:150]
+    return f"TEXTHASH:{clean}"
+
 def is_similar_title(title, published_titles):
     words = set(re.findall(r'\w+', title.lower()))
     words = {w for w in words if len(w) > 3}
@@ -331,9 +336,12 @@ def parse_rss(url):
             published = entry.get('published_parsed') or entry.get('updated_parsed')
             pub_timestamp = time_module.mktime(published) if published else 0
             
+            summary_text = clean_html_entities(re.sub('<.*?>', '', entry.get('summary', '')))
+            
             news.append({
                 'title': title,
-                'summary': clean_html_entities(re.sub('<.*?>', '', entry.get('summary', ''))),
+                'summary': summary_text,
+                'text_hash': get_text_hash(summary_text), # Добавляем хеш текста
                 'url': url_link,
                 'guid': guid,
                 'image': get_image_from_description(entry),
@@ -386,9 +394,12 @@ def parse_vk(group_id, count=5):
                             image_url = max(sizes, key=lambda x: x["width"])["url"]
                             break
             
+            summary_text = clean_html_entities(text)
+            
             news.append({
                 'title': title,
-                'summary': clean_html_entities(text),
+                'summary': summary_text,
+                'text_hash': get_text_hash(summary_text), # Добавляем хеш текста
                 'url': f"https://vk.com/wall{group_id}_{post['id']}",
                 'guid': f"vk_{group_id}_{post['id']}",
                 'image': image_url,
@@ -465,11 +476,9 @@ def rewrite_text(title, summary):
         )
         result = completion.choices[0].message.content.strip()
         
-        # Убираем лишние < и >, кроме тега <b> и </b>
         result = re.sub(r'<(?!b>|/b>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
         
-        # Убираем упоминания источников (но не трогаем <b>)
         result = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
         result = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
         result = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
@@ -517,7 +526,6 @@ def send_to_telegram(text, image_url=None):
     
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Если есть фото и текст влезает в caption
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -532,7 +540,6 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Если есть фото, но текст длинный — раздельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -547,7 +554,6 @@ def send_to_telegram(text, image_url=None):
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Текст (с фото или без)
     final_text = smart_cut(text, MAX_MSG) + signature
     data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML'}
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -617,23 +623,29 @@ def main():
             summary = news['summary']
             url = news['url']
             guid = news['guid']
+            text_hash = news['text_hash']
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
+            # 1. Проверка GUID
             if guid in published_keys:
                 print(f"[{pub_date}] Пропускаем (GUID): {title[:50]}...")
                 continue
             
+            # 2. Проверка URL
             if url in published_keys:
                 print(f"[{pub_date}] Пропускаем (URL): {title[:50]}...")
                 continue
             
-            if is_similar_title(title, published_titles):
-                print(f"[{pub_date}] Пропускаем (похожий): {title[:50]}...")
+            # 3. ЖЁСТКАЯ ПРОВЕРКА: хеш текста (если текст совпадает — это дубль)
+            if text_hash in published_keys:
+                print(f"[{pub_date}] Пропускаем (текст-дубль): {title[:50]}...")
                 continue
             
-            # ⚠️ ПРОВЕРКА "НЕТ КАРТИНКИ" УДАЛЕНА
-            # Теперь бот публикует даже без фото
+            # 4. Проверка схожести заголовков (порог 80%)
+            if is_similar_title(title, published_titles):
+                print(f"[{pub_date}] Пропускаем (похожий заголовок): {title[:50]}...")
+                continue
             
             if not is_chp_news(title, summary):
                 print(f"[{pub_date}] Пропускаем (не ЧП Алтая): {title[:50]}...")
@@ -648,9 +660,9 @@ def main():
         
         print(f"Найдена ЧП-новость: {found_news['title']}")
         print(f"Источник: {found_news['source']}")
-        print(f"Картинка: {found_news.get('image') or 'НЕТ'}")
         
         image_url = found_news.get('image')
+        print(f"Картинка: {image_url or 'НЕТ'}")
         
         post_text = rewrite_text(found_news['title'], found_news['summary'])
         print(f"Размер поста: {len(post_text)} символов")
@@ -661,9 +673,11 @@ def main():
         except Exception as e:
             print(f"ОШИБКА при отправке: {e}")
         finally:
+            # СОХРАНЯЕМ ВСЕ 4 КЛЮЧА
             published_keys.append(found_news['guid'])
             published_keys.append(found_news['url'])
             published_keys.append(f"TITLE:{found_news['title'][:100]}")
+            published_keys.append(found_news['text_hash'])
             save_published_keys(published_keys)
             print(f"Ключи сохранены. Всего в памяти: {len(published_keys)}")
     
