@@ -15,6 +15,7 @@ VK_TOKEN = os.getenv("VK_TOKEN")
 
 # --- ИСТОЧНИКИ НОВОСТЕЙ ---
 RSS_SOURCES = [
+    "https://altapress.ru/rss",
     "https://altai.aif.ru/rss/all.php",
 ]
 
@@ -26,11 +27,11 @@ VK_GROUPS = [
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 5
-MAX_HISTORY = 300  # Храним 300 записей (было 200)
+MAX_HISTORY = 300
 
 # --- ЖЁСТКИЕ ПОРОГИ СХОЖЕСТИ ---
-TITLE_SIMILARITY_THRESHOLD = 0.85  # 85% схожести заголовков
-TEXT_SIMILARITY_THRESHOLD = 0.80   # 80% схожести текстов
+TITLE_SIMILARITY_THRESHOLD = 0.85
+TEXT_SIMILARITY_THRESHOLD = 0.80
 
 # --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
@@ -255,6 +256,16 @@ def clean_html_entities(text):
         text = text.replace(f'"{source}"', '')
         text = text.replace(source, '')
     
+    # --- УДАЛЯЕМ ВСЕ ССЫЛКИ ИЗ ТЕКСТА ---
+    text = re.sub(r'https?://\S+', '', text)
+    text = re.sub(r'www\.\S+', '', text)
+    text = re.sub(r'max\.ru\S*', '', text)
+    text = re.sub(r't\.me\S*', '', text)
+    text = re.sub(r'vk\.com\S*', '', text)
+    text = re.sub(r'https?://\S+', '', text)
+    text = re.sub(r'\b\S+\.(ru|com|org|net|рф|su|io|me|tv)\S*', '', text)
+    text = re.sub(r'://\S+', '', text)  # на случай если осталось ://
+    
     text = re.sub(r'[ \t]+', ' ', text).strip()
     text = re.sub(r'\n\s*\n', '\n\n', text)
     text = re.sub(r'\s+([.,!?;:])', r'\1', text)
@@ -283,22 +294,18 @@ def is_chp_news(title, summary):
 # --- ЖЁСТКАЯ ЗАЩИТА ОТ ДУБЛЕЙ ---
 
 def get_text_hash(text):
-    """Хеш первых 200 символов текста (без пробелов)"""
     clean = re.sub(r'\s+', '', text.lower())[:200]
     return f"TEXTHASH:{clean}"
 
 def get_title_hash(title):
-    """Хеш заголовка (без знаков препинания)"""
     clean = re.sub(r'\W+', '', title.lower())
     return f"TITLEHASH:{clean}"
 
 def get_words(text):
-    """Извлекает слова длиннее 3 символов для сравнения"""
     words = set(re.findall(r'\w+', text.lower()))
     return {w for w in words if len(w) > 3}
 
 def is_similar_title(title, published_titles):
-    """Проверка схожести заголовков (85%)"""
     words = get_words(title)
     if not words:
         return False
@@ -316,7 +323,6 @@ def is_similar_title(title, published_titles):
     return False
 
 def is_similar_text(text, published_texts):
-    """Проверка схожести текстов (80%)"""
     words = get_words(text[:500])
     if not words:
         return False
@@ -484,6 +490,7 @@ def rewrite_text(title, summary):
 - НЕ используй Markdown.
 - НЕ используй символы < и > в тексте (только в <b>).
 - НЕ упоминай источник.
+- НЕ добавляй ссылки (url, сайты, каналы).
 - Длина: 800-1500 символов.
 
 Заголовок: {title}
@@ -500,6 +507,15 @@ def rewrite_text(title, summary):
         
         result = re.sub(r'<(?!b>|/b>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
+        
+        # Ещё раз чистим от ссылок на всякий случай
+        result = re.sub(r'https?://\S+', '', result)
+        result = re.sub(r'www\.\S+', '', result)
+        result = re.sub(r'max\.ru\S*', '', result)
+        result = re.sub(r't\.me\S*', '', result)
+        result = re.sub(r'vk\.com\S*', '', result)
+        result = re.sub(r'\b\S+\.(ru|com|org|net|рф)\S*', '', result)
+        result = re.sub(r'://\S+', '', result)
         
         for source in ['Банкфакс', 'Алтапресс', 'АиФ', 'Толк', 'Амител', 'Катунь 24', 'Вести22']:
             result = result.replace(f'«{source}»', '')
@@ -589,7 +605,6 @@ def main():
         published_keys = load_published_keys()
         print(f"В памяти {len(published_keys)} ключей.")
         
-        # Разбираем ключи по типам
         published_titles = [k.replace("TITLE:", "") for k in published_keys if k.startswith("TITLE:")]
         published_texts = [k.replace("TEXTHASH:", "") for k in published_keys if k.startswith("TEXTHASH:")]
         
@@ -623,37 +638,30 @@ def main():
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
-            # 1. GUID
             if guid in published_keys:
                 print(f"[{pub_date}] ⛔ GUID: {title[:50]}...")
                 continue
             
-            # 2. URL
             if url in published_keys:
                 print(f"[{pub_date}] ⛔ URL: {title[:50]}...")
                 continue
             
-            # 3. TEXTHASH
             if text_hash in published_keys:
                 print(f"[{pub_date}] ⛔ TEXTHASH: {title[:50]}...")
                 continue
             
-            # 4. TITLEHASH
             if title_hash in published_keys:
                 print(f"[{pub_date}] ⛔ TITLEHASH: {title[:50]}...")
                 continue
             
-            # 5. Схожесть заголовков (85%)
             if is_similar_title(title, published_titles):
                 print(f"[{pub_date}] ⛔ Схожесть заголовка: {title[:50]}...")
                 continue
             
-            # 6. Схожесть текстов (80%)
             if is_similar_text(summary, published_texts):
                 print(f"[{pub_date}] ⛔ Схожесть текста: {title[:50]}...")
                 continue
             
-            # 7. ЧП-фильтр
             if not is_chp_news(title, summary):
                 print(f"[{pub_date}] Пропускаем (не ЧП): {title[:50]}...")
                 continue
@@ -680,7 +688,6 @@ def main():
         except Exception as e:
             print(f"ОШИБКА отправки: {e}")
         finally:
-            # СОХРАНЯЕМ ВСЕ 5 КЛЮЧЕЙ
             published_keys.append(found_news['guid'])
             published_keys.append(found_news['url'])
             published_keys.append(f"TITLE:{found_news['title'][:100]}")
