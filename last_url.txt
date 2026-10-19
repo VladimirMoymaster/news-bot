@@ -151,3 +151,7 @@ https://altai.aif.ru/incidents/dvuh-zhiteley-altaya-posle-insulta-v-kome-evakuir
 https://altai.aif.ru/incidents/dvuh-zhiteley-altaya-posle-insulta-v-kome-evakuirovali-iz-kitaya
 TITLE:Двух жителей Алтая после инсульта в коме эвакуировали из Китая
 TEXTHASH:сейчасониполучаютнеобходимуюмедпомощь.
+https://altai.aif.ru/incidents/barnaulskiy-haker-vzlomal-bazu-klientov-dodo-pizza-s-pomoshchyu-ii
+https://altai.aif.ru/incidents/barnaulskiy-haker-vzlomal-bazu-klientov-dodo-pizza-s-pomoshchyu-ii
+TITLE:Барнаульский хакер взломал базу клиентов Dodo Pizza с помощью ИИ
+TEXTHASH:раскрытыдетализадержаниямолодогочеловека.
