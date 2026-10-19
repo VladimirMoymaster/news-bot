@@ -103,3 +103,7 @@ https://altai.aif.ru/incidents/zhitel-gorno-altayska-razbil-chuzhoy-avtomobil-iz
 https://altai.aif.ru/incidents/zhitel-gorno-altayska-razbil-chuzhoy-avtomobil-iz-za-sestry
 TITLE:Житель Горно-Алтайска разбил чужой автомобиль из-за сестры
 TEXTHASH:возбужденоуголовноедело.
+https://altai.aif.ru/incidents/v-barnaule-ustranili-avariyu-na-setyah-iz-za-kotoroy-postradali-dvoe-chelovek
+https://altai.aif.ru/incidents/v-barnaule-ustranili-avariyu-na-setyah-iz-za-kotoroy-postradali-dvoe-chelovek
+TITLE:В Барнауле устранили аварию на сетях, из-за которой пострадали двое человек
+TEXTHASH:сетьзаполнилитеплоносителемизапустилициркуляцию.
