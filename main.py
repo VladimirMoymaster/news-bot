@@ -26,8 +26,11 @@ VK_GROUPS = [
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 5
-MAX_HISTORY = 200  # Увеличили историю (было 100)
-SIMILARITY_THRESHOLD = 0.80  # Увеличили порог схожести (было 0.7)
+MAX_HISTORY = 300  # Храним 300 записей (было 200)
+
+# --- ЖЁСТКИЕ ПОРОГИ СХОЖЕСТИ ---
+TITLE_SIMILARITY_THRESHOLD = 0.85  # 85% схожести заголовков
+TEXT_SIMILARITY_THRESHOLD = 0.80   # 80% схожести текстов
 
 # --- ГЕОГРАФИЯ ---
 GEO_KEYWORDS = [
@@ -277,32 +280,60 @@ def is_chp_news(title, summary):
     has_chp = any(keyword in text for keyword in CHP_KEYWORDS)
     return has_chp
 
+# --- ЖЁСТКАЯ ЗАЩИТА ОТ ДУБЛЕЙ ---
+
 def get_text_hash(text):
-    """Жёсткий хеш текста для проверки на дубли (первые 150 символов, без пробелов)"""
-    clean = re.sub(r'\s+', '', text.lower())[:150]
+    """Хеш первых 200 символов текста (без пробелов)"""
+    clean = re.sub(r'\s+', '', text.lower())[:200]
     return f"TEXTHASH:{clean}"
 
+def get_title_hash(title):
+    """Хеш заголовка (без знаков препинания)"""
+    clean = re.sub(r'\W+', '', title.lower())
+    return f"TITLEHASH:{clean}"
+
+def get_words(text):
+    """Извлекает слова длиннее 3 символов для сравнения"""
+    words = set(re.findall(r'\w+', text.lower()))
+    return {w for w in words if len(w) > 3}
+
 def is_similar_title(title, published_titles):
-    words = set(re.findall(r'\w+', title.lower()))
-    words = {w for w in words if len(w) > 3}
-    
+    """Проверка схожести заголовков (85%)"""
+    words = get_words(title)
     if not words:
         return False
     
     for published in published_titles:
-        published_words = set(re.findall(r'\w+', published.lower()))
-        published_words = {w for w in published_words if len(w) > 3}
-        
+        published_words = get_words(published)
         if not published_words:
             continue
         
         common = words & published_words
         similarity = len(common) / max(len(words), len(published_words))
         
-        if similarity >= SIMILARITY_THRESHOLD:
+        if similarity >= TITLE_SIMILARITY_THRESHOLD:
             return True
-    
     return False
+
+def is_similar_text(text, published_texts):
+    """Проверка схожести текстов (80%)"""
+    words = get_words(text[:500])
+    if not words:
+        return False
+    
+    for published in published_texts:
+        published_words = get_words(published[:500])
+        if not published_words:
+            continue
+        
+        common = words & published_words
+        similarity = len(common) / max(len(words), len(published_words))
+        
+        if similarity >= TEXT_SIMILARITY_THRESHOLD:
+            return True
+    return False
+
+# --- ПАРСИНГ ---
 
 def get_image_from_description(entry):
     if 'enclosures' in entry and len(entry.enclosures) > 0:
@@ -341,7 +372,8 @@ def parse_rss(url):
             news.append({
                 'title': title,
                 'summary': summary_text,
-                'text_hash': get_text_hash(summary_text), # Добавляем хеш текста
+                'text_hash': get_text_hash(summary_text),
+                'title_hash': get_title_hash(title),
                 'url': url_link,
                 'guid': guid,
                 'image': get_image_from_description(entry),
@@ -399,7 +431,8 @@ def parse_vk(group_id, count=5):
             news.append({
                 'title': title,
                 'summary': summary_text,
-                'text_hash': get_text_hash(summary_text), # Добавляем хеш текста
+                'text_hash': get_text_hash(summary_text),
+                'title_hash': get_title_hash(title),
                 'url': f"https://vk.com/wall{group_id}_{post['id']}",
                 'guid': f"vk_{group_id}_{post['id']}",
                 'image': image_url,
@@ -410,6 +443,8 @@ def parse_vk(group_id, count=5):
     except Exception as e:
         print(f"Ошибка ВК {group_id}: {e}")
         return []
+
+# --- ГЕНЕРАЦИЯ ПОСТА ---
 
 def get_emoji(text_lower):
     if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул", "наезд"]):
@@ -425,7 +460,6 @@ def get_emoji(text_lower):
     return "🚨"
 
 def rewrite_text(title, summary):
-    """Переписывает новость: жирный заголовок + текст."""
     original_len = len(title) + len(summary)
     
     prompt = f"""
@@ -434,34 +468,22 @@ def rewrite_text(title, summary):
 
 ФОРМАТ ОТВЕТА:
 - Первая строка — ЗАГОЛОВОК с эмодзи в начале.
-- Заголовок нужно обернуть в HTML-тег <b>...</b>, чтобы он был жирным.
+- Заголовок нужно обернуть в HTML-тег <b>...</b>.
 - Пустая строка после заголовка.
-- Затем 3-4 абзаца обычного текста (без HTML-тегов).
+- Затем 3-4 абзаца обычного текста.
 - Каждый абзац — 2-3 предложения.
 - НЕ используй разделители (━━━), списки (•, ▪️), маркеры.
 
-ПРИМЕР ПРАВИЛЬНОГО ОТВЕТА:
-<b>🚗 ДТП на Ленина: двое пострадавших</b>
-
-В Барнауле на проспекте Ленина произошло серьёзное ДТП. Водитель «Тойоты» не справился с управлением и столкнулся с другой машиной.
-
-В результате аварии пострадали два человека. Их доставили в больницу с травмами различной степени тяжести.
-
-По данным ГИБДД, причиной могла стать высокая скорость. На месте работают инспекторы, движение на участке затруднено.
-
 СТИЛЬ:
 - Современный, живой, но уважительный.
-- Факты + лёгкая подача.
-- Без жаргона («тачка», «разложился»).
+- Без жаргона, без шуток про погибших.
 - Без смайликов (😂😍🥰) — только тематические эмодзи (🚗🔥👮🚑⚠️🚨).
-- Без шуток про погибших и пострадавших.
 
 ПРАВИЛА:
-- НЕ сокращай текст. Сохрани все факты, цифры, имена, адреса.
-- НЕ используй Markdown (**, *, __).
-- НЕ используй символы < и > в тексте (только в теге <b> для заголовка).
-- НЕ упоминай источник новости.
-- НЕ задавай вопросов.
+- НЕ сокращай текст. Сохрани все факты.
+- НЕ используй Markdown.
+- НЕ используй символы < и > в тексте (только в <b>).
+- НЕ упоминай источник.
 - Длина: 800-1500 символов.
 
 Заголовок: {title}
@@ -479,10 +501,6 @@ def rewrite_text(title, summary):
         result = re.sub(r'<(?!b>|/b>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
         
-        result = re.sub(r'пишет\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
-        result = re.sub(r'сообщает\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
-        result = re.sub(r'по данным\s+[«"]?[А-Яа-яA-Za-z0-9\-]+[»"]?', '', result, flags=re.IGNORECASE)
-        
         for source in ['Банкфакс', 'Алтапресс', 'АиФ', 'Толк', 'Амител', 'Катунь 24', 'Вести22']:
             result = result.replace(f'«{source}»', '')
             result = result.replace(source, '')
@@ -490,18 +508,11 @@ def rewrite_text(title, summary):
         result = re.sub(r'[ \t]+', ' ', result).strip()
         result = re.sub(r'\n{3,}', '\n\n', result)
         
-        refuse_markers = [
-            "пришлите", "пришли", "мне нужен", "не хватает",
-            "недостаточно", "к сожалению", "я не могу",
-            "уточните", "расскажите больше",
-        ]
-        result_lower = result.lower()
-        is_refusal = any(marker in result_lower for marker in refuse_markers)
+        refuse_markers = ["пришлите", "пришли", "мне нужен", "не хватает", "недостаточно", "к сожалению", "я не могу", "уточните"]
+        is_refusal = any(marker in result.lower() for marker in refuse_markers)
         is_too_short = len(result) < original_len * 0.5
         
         if is_refusal or is_too_short:
-            reason = "отказ" if is_refusal else f"сокращение"
-            print(f"⚠️ ИИ: {reason}. Используем оригинал.")
             emoji = get_emoji((title + " " + summary).lower())
             result = f"<b>{emoji} {title}</b>\n\n{summary}"
         
@@ -521,9 +532,7 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    """Отправляет пост. Если фото нет — только текст."""
     signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
-    
     MAX_MSG = 4096 - len(signature) - 50
     
     if image_url and len(text) + len(signature) <= 1024:
@@ -536,7 +545,6 @@ def send_to_telegram(text, image_url=None):
             print("Telegram ответ (фото с caption):", r.status_code)
             if r.status_code == 200:
                 return
-            print(f"Ошибка caption: {r.text}")
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
@@ -548,8 +556,6 @@ def send_to_telegram(text, image_url=None):
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото):", r.status_code)
-            
-            print("⏱️ Ждём 20 секунд перед отправкой текста...")
             time.sleep(20)
         except Exception as e:
             print(f"Ошибка фото: {e}")
@@ -559,15 +565,6 @@ def send_to_telegram(text, image_url=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     r = requests.post(url, data=data, timeout=15)
     print("Telegram ответ (текст):", r.status_code)
-    
-    if r.status_code != 200:
-        print(f"Ошибка HTML: {r.text}")
-        plain_text = re.sub(r'<[^>]+>', '', text)
-        plain_signature = '\n\n📌 Барнаул ЧП | Новости и Разборы\n👉 https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c'
-        final_plain = smart_cut(plain_text, MAX_MSG) + plain_signature
-        data = {'chat_id': CHAT_ID, 'text': final_plain[:4096]}
-        r2 = requests.post(url, data=data, timeout=15)
-        print("Telegram ответ (без HTML):", r2.status_code)
 
 def load_published_keys():
     if os.path.exists(STATE_FILE):
@@ -590,10 +587,13 @@ def main():
     
     try:
         published_keys = load_published_keys()
-        print(f"В памяти {len(published_keys)} опубликованных ключей.")
+        print(f"В памяти {len(published_keys)} ключей.")
         
+        # Разбираем ключи по типам
         published_titles = [k.replace("TITLE:", "") for k in published_keys if k.startswith("TITLE:")]
-        print(f"Опубликованных заголовков: {len(published_titles)}")
+        published_texts = [k.replace("TEXTHASH:", "") for k in published_keys if k.startswith("TEXTHASH:")]
+        
+        print(f"Заголовков: {len(published_titles)}, Текстов: {len(published_texts)}")
         
         all_news = []
         
@@ -610,12 +610,7 @@ def main():
             all_news.extend(news)
         
         all_news.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
-        
         print(f"Всего новостей: {len(all_news)}")
-        
-        if not all_news:
-            print("Новостей не найдено.")
-            return
         
         found_news = None
         for news in all_news:
@@ -624,41 +619,53 @@ def main():
             url = news['url']
             guid = news['guid']
             text_hash = news['text_hash']
+            title_hash = news['title_hash']
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
-            # 1. Проверка GUID
+            # 1. GUID
             if guid in published_keys:
-                print(f"[{pub_date}] Пропускаем (GUID): {title[:50]}...")
+                print(f"[{pub_date}] ⛔ GUID: {title[:50]}...")
                 continue
             
-            # 2. Проверка URL
+            # 2. URL
             if url in published_keys:
-                print(f"[{pub_date}] Пропускаем (URL): {title[:50]}...")
+                print(f"[{pub_date}] ⛔ URL: {title[:50]}...")
                 continue
             
-            # 3. ЖЁСТКАЯ ПРОВЕРКА: хеш текста (если текст совпадает — это дубль)
+            # 3. TEXTHASH
             if text_hash in published_keys:
-                print(f"[{pub_date}] Пропускаем (текст-дубль): {title[:50]}...")
+                print(f"[{pub_date}] ⛔ TEXTHASH: {title[:50]}...")
                 continue
             
-            # 4. Проверка схожести заголовков (порог 80%)
+            # 4. TITLEHASH
+            if title_hash in published_keys:
+                print(f"[{pub_date}] ⛔ TITLEHASH: {title[:50]}...")
+                continue
+            
+            # 5. Схожесть заголовков (85%)
             if is_similar_title(title, published_titles):
-                print(f"[{pub_date}] Пропускаем (похожий заголовок): {title[:50]}...")
+                print(f"[{pub_date}] ⛔ Схожесть заголовка: {title[:50]}...")
                 continue
             
+            # 6. Схожесть текстов (80%)
+            if is_similar_text(summary, published_texts):
+                print(f"[{pub_date}] ⛔ Схожесть текста: {title[:50]}...")
+                continue
+            
+            # 7. ЧП-фильтр
             if not is_chp_news(title, summary):
-                print(f"[{pub_date}] Пропускаем (не ЧП Алтая): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (не ЧП): {title[:50]}...")
                 continue
             
             found_news = news
             break
         
         if not found_news:
-            print("Подходящих ЧП-новостей не найдено.")
+            print("Подходящих новостей не найдено.")
             return
         
-        print(f"Найдена ЧП-новость: {found_news['title']}")
+        print(f"✅ Найдена: {found_news['title']}")
         print(f"Источник: {found_news['source']}")
         
         image_url = found_news.get('image')
@@ -669,17 +676,18 @@ def main():
         
         try:
             send_to_telegram(post_text, image_url)
-            print("Пост успешно отправлен!")
+            print("Пост отправлен!")
         except Exception as e:
-            print(f"ОШИБКА при отправке: {e}")
+            print(f"ОШИБКА отправки: {e}")
         finally:
-            # СОХРАНЯЕМ ВСЕ 4 КЛЮЧА
+            # СОХРАНЯЕМ ВСЕ 5 КЛЮЧЕЙ
             published_keys.append(found_news['guid'])
             published_keys.append(found_news['url'])
             published_keys.append(f"TITLE:{found_news['title'][:100]}")
             published_keys.append(found_news['text_hash'])
+            published_keys.append(found_news['title_hash'])
             save_published_keys(published_keys)
-            print(f"Ключи сохранены. Всего в памяти: {len(published_keys)}")
+            print(f"Сохранено. Всего ключей: {len(published_keys)}")
     
     finally:
         if os.path.exists(LOCK_FILE):
