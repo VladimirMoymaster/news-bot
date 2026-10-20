@@ -205,3 +205,8 @@ https://altai.aif.ru/incidents/na-altae-muzhchina-slomal-rebra-sosedu-za-shum-ot
 TITLE:После избиения школьниц во барнаульском дворе возбудили уголовное дело
 TEXTHASH:толпадевушекнапаланадвухученицнаулицеэнтузиастов.
 TITLEHASH:послеизбиенияшкольницвобарнаульскомдворевозбудилиуголовноедело
+https://altai.aif.ru/incidents/muzhchina-pogib-pod-kolyosami-poezda-na-altae
+https://altai.aif.ru/incidents/muzhchina-pogib-pod-kolyosami-poezda-na-altae
+TITLE:В Бийске машина сбила 9-летнего ребенка на улице Трофимова
+TEXTHASH:мальчикпопалвбольницувсостояниисреднейстепенитяжести.
+TITLEHASH:вбийскемашинасбила9летнегоребенканаулицетрофимова
