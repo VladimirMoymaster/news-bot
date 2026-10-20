@@ -27,8 +27,6 @@ STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 5
 MAX_HISTORY = 300
-
-# --- ЖЁСТКИЕ ПОРОГИ СХОЖЕСТИ ---
 TITLE_SIMILARITY_THRESHOLD = 0.85
 TEXT_SIMILARITY_THRESHOLD = 0.80
 
@@ -255,15 +253,14 @@ def clean_html_entities(text):
         text = text.replace(f'"{source}"', '')
         text = text.replace(source, '')
     
-    # --- УДАЛЯЕМ ВСЕ ССЫЛКИ ИЗ ТЕКСТА ---
+    # УДАЛЯЕМ ВСЕ ССЫЛКИ
     text = re.sub(r'https?://\S+', '', text)
     text = re.sub(r'www\.\S+', '', text)
     text = re.sub(r'max\.ru\S*', '', text)
     text = re.sub(r't\.me\S*', '', text)
     text = re.sub(r'vk\.com\S*', '', text)
-    text = re.sub(r'https?://\S+', '', text)
     text = re.sub(r'\b\S+\.(ru|com|org|net|рф|su|io|me|tv)\S*', '', text)
-    text = re.sub(r'://\S+', '', text)  # на случай если осталось ://
+    text = re.sub(r'://\S+', '', text)
     
     text = re.sub(r'[ \t]+', ' ', text).strip()
     text = re.sub(r'\n\s*\n', '\n\n', text)
@@ -449,7 +446,7 @@ def parse_vk(group_id, count=5):
         print(f"Ошибка ВК {group_id}: {e}")
         return []
 
-# --- ГЕНЕРАЦИЯ ПОСТА ---
+# --- ГЕНЕРАЦИЯ ПОСТА С АВТО-СТИЛЕМ ---
 
 def get_emoji(text_lower):
     if any(w in text_lower for w in ["дтп", "авария", "сбил", "столкнов", "врезал", "влетел", "перевернул", "наезд"]):
@@ -464,33 +461,81 @@ def get_emoji(text_lower):
         return "⚠️"
     return "🚨"
 
+def get_style(title, summary):
+    """Автоматически определяет стиль поста"""
+    text = (title + " " + summary).lower()
+    
+    # Срочные новости — если есть слова-маркеры
+    if any(w in text for w in ["срочно", "погибли", "жертвы", "массовое", "прямо сейчас"]):
+        return "breaking"
+    
+    # Аналитический — если новость про статистику, итоги, разбор
+    if any(w in text for w in ["статистика", "итоги", "почему", "разбор", "анализ"]):
+        return "analytical"
+    
+    # По умолчанию — редакторский
+    return "editorial"
+
 def rewrite_text(title, summary):
     original_len = len(title) + len(summary)
+    style = get_style(title, summary)
+    
+    # Базовые правила для всех стилей
+    base_rules = """
+ЖЁСТКИЕ ПРАВИЛА:
+- НЕ сокращай факты! Сохрани все цифры, имена, адреса, возраст, должности.
+- НЕ используй Markdown (**, *, __).
+- НЕ используй символы < и > в тексте (только для тега <b>).
+- НЕ упоминай источник новости.
+- НЕ добавляй ссылки (url, сайты, каналы).
+- Убери «воду» и канцелярит.
+"""
+    
+    if style == "breaking":
+        format_rules = """
+ФОРМАТ (СРОЧНЫЕ НОВОСТИ):
+- Заголовок в <b>...</b> с эмодзи.
+- Пустая строка.
+- ОДИН короткий абзац (2-3 предложения) — только самое главное.
+- В конце — фраза «Подробности уточняются».
+"""
+    elif style == "analytical":
+        format_rules = """
+ФОРМАТ (АНАЛИТИЧЕСКИЙ РАЗБОР):
+- Заголовок в <b>...</b> с эмодзи.
+- Пустая строка.
+- Первый абзац — суть (что случилось).
+- Второй абзац — детали и контекст.
+- Третий абзац — последствия и что дальше.
+- В конце — вывод или вопрос к читателю.
+"""
+    else:
+        format_rules = """
+ФОРМАТ (РЕДАКТОРСКИЙ СТИЛЬ):
+- Заголовок в <b>...</b> с эмодзи.
+- Пустая строка.
+- Первый абзац — суть (что, где, когда). 2-3 предложения.
+- Второй абзац — детали (кто, как). 2-3 предложения.
+- Третий абзац — последствия. 2-3 предложения.
+- Четвёртый абзац (опционально) — что дальше.
+"""
     
     prompt = f"""
-Ты — редактор Telegram-канала «Барнаул ЧП | Новости и Разборы».
-Пиши в современном смешанном стиле: факты + лёгкая подача, но с уважением к трагедиям.
+Ты — главный редактор Telegram-канала «Барнаул ЧП | Новости и Разборы».
+Твоя задача — превратить сырой текст новости в идеальный пост для Telegram.
 
-ФОРМАТ ОТВЕТА:
-- Первая строка — ЗАГОЛОВОК с эмодзи в начале.
-- Заголовок нужно обернуть в HTML-тег <b>...</b>.
-- Пустая строка после заголовка.
-- Затем 3-4 абзаца обычного текста.
-- Каждый абзац — 2-3 предложения.
-- НЕ используй разделители (━━━), списки (•, ▪️), маркеры.
+{format_rules}
 
-СТИЛЬ:
-- Современный, живой, но уважительный.
-- Без жаргона, без шуток про погибших.
-- Без смайликов (😂😍🥰) — только тематические эмодзи (🚗🔥👮🚑⚠️🚨).
+{base_rules}
 
-ПРАВИЛА:
-- НЕ сокращай текст. Сохрани все факты.
-- НЕ используй Markdown.
-- НЕ используй символы < и > в тексте (только в <b>).
-- НЕ упоминай источник.
-- НЕ добавляй ссылки (url, сайты, каналы).
-- Длина: 800-1500 символов.
+ПРИМЕР ИДЕАЛЬНОГО ПОСТА (редакторский стиль):
+<b>🚗 Двое пострадали в ДТП на Ленина</b>
+
+Авария произошла сегодня утром на проспекте Ленина, 30. 32-летняя женщина за рулём «Тойоты Фанкарго» при перестроении не справилась с управлением.
+
+Машину вынесло на встречную полосу, где она столкнулась с «Хавал F7x» под управлением 33-летней женщины. В салоне второй иномарки находился 10-летний ребёнок.
+
+Травмы получили водитель «Хавала» и её пассажир. Обоих доставили в больницу. На месте работают инспекторы ГИБДД, обстоятельства уточняются.
 
 Заголовок: {title}
 Текст: {summary}
@@ -499,17 +544,15 @@ def rewrite_text(title, summary):
         completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
+            temperature=0.4,
             max_tokens=2000
         )
         result = completion.choices[0].message.content.strip()
         
+        # Очистка
         result = re.sub(r'<(?!b>|/b>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)>', '', result)
-        
-        # Ещё раз чистим от ссылок на всякий случай
         result = re.sub(r'https?://\S+', '', result)
-        result = re.sub(r'www\.\S+', '', result)
         result = re.sub(r'max\.ru\S*', '', result)
         result = re.sub(r't\.me\S*', '', result)
         result = re.sub(r'vk\.com\S*', '', result)
@@ -523,17 +566,14 @@ def rewrite_text(title, summary):
         result = re.sub(r'[ \t]+', ' ', result).strip()
         result = re.sub(r'\n{3,}', '\n\n', result)
         
-        refuse_markers = ["пришлите", "пришли", "мне нужен", "не хватает", "недостаточно", "к сожалению", "я не могу", "уточните"]
-        is_refusal = any(marker in result.lower() for marker in refuse_markers)
-        is_too_short = len(result) < original_len * 0.5
-        
-        if is_refusal or is_too_short:
-            emoji = get_emoji((title + " " + summary).lower())
-            result = f"<b>{emoji} {title}</b>\n\n{summary}"
+        # Проверка на отказ
+        refuse_markers = ["пришлите", "пришли", "мне нужен", "не хватает", "недостаточно", "к сожалению", "я не могу"]
+        if any(marker in result.lower() for marker in refuse_markers):
+            raise ValueError("ИИ отказался")
         
         return result
     except Exception as e:
-        print(f"Ошибка ИИ: {e}")
+        print(f"Ошибка ИИ: {e}. Используем оригинал.")
         emoji = get_emoji((title + " " + summary).lower())
         return f"<b>{emoji} {title}</b>\n\n{summary}"
 
@@ -606,8 +646,6 @@ def main():
         
         published_titles = [k.replace("TITLE:", "") for k in published_keys if k.startswith("TITLE:")]
         published_texts = [k.replace("TEXTHASH:", "") for k in published_keys if k.startswith("TEXTHASH:")]
-        
-        print(f"Заголовков: {len(published_titles)}, Текстов: {len(published_texts)}")
         
         all_news = []
         
