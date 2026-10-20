@@ -178,3 +178,8 @@ https://altai.aif.ru/incidents/podrostku-kotorogo-pokusal-medved-na-altae-sdelal
 TITLE:Мальчик, пострадавший от медведя на Алтае, переведен из реанимации
 TEXTHASH:онвсознании,дышитсамиразговариваетсмамой.
 TITLEHASH:мальчикпострадавшийотмедведянаалтаепереведенизреанимации
+https://altai.aif.ru/society/v_altayskom_krae_mogut_vozobnovit_aviaperelety_vnutri_regiona
+https://altai.aif.ru/society/v_altayskom_krae_mogut_vozobnovit_aviaperelety_vnutri_regiona
+TITLE:Санитарная авиация Алтая спасла 244 пациента с начала года
+TEXTHASH:службавыполнилаболее150вылетов.
+TITLEHASH:санитарнаяавиацияалтаяспасла244пациентасначалагода
