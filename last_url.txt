@@ -250,3 +250,8 @@ https://altai.aif.ru/society/vinovnika_rezonansnogo_dtp_aleksandra_rudenko_otpra
 TITLE:В декабре освободится виновник ДТП с тремя погибшими в Барнауле
 TEXTHASH:александрруденкобылосуждензасмертнуюавариюнапроспектеленина.
 TITLEHASH:вдекабреосвободитсявиновникдтпстремяпогибшимивбарнауле
+https://altai.aif.ru/health/vytashchili-s-togo-sveta-17-letnyaya-spiral-edva-ne-ubila-zhenshchinu
+https://altai.aif.ru/health/vytashchili-s-togo-sveta-17-letnyaya-spiral-edva-ne-ubila-zhenshchinu
+TITLE:17-летняя спираль едва не убила женщину
+TEXTHASH:вбарнаулегинекологспаслапациенткус17-летнейспиралью.
+TITLEHASH:17летняяспиральедванеубилаженщину
