@@ -282,3 +282,8 @@ https://altai.aif.ru/incidents/za-sutki-na-altae-potushili-10-pozharov
 TITLE:За сутки в Алтайском крае ликвидировали 10 пожаров
 TEXTHASH:вромановогорелинадворныепостройки.
 TITLEHASH:засуткивалтайскомкраеликвидировали10пожаров
+https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
+https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
+TITLE:Экс-руководителей страховой компании в Барнауле осудили за фальсификацию
+TEXTHASH:онизавышалиданныеоналичных,чтобысохранитьлицензию.
+TITLEHASH:эксруководителейстраховойкомпаниивбарнаулеосудилизафальсификацию
