@@ -277,3 +277,8 @@ https://altai.aif.ru/incidents/v-rubcovske-muzhchina-ubil-znakomogo-s-pomoshchyu
 TITLE:В Бийске при столкновении двух машин пострадала женщина
 TEXTHASH:62-летнююженщинугоспитализироваливсостояниисреднейтяжести.
 TITLEHASH:вбийскепристолкновениидвухмашинпострадалаженщина
+https://altai.aif.ru/incidents/za-sutki-na-altae-potushili-10-pozharov
+https://altai.aif.ru/incidents/za-sutki-na-altae-potushili-10-pozharov
+TITLE:За сутки в Алтайском крае ликвидировали 10 пожаров
+TEXTHASH:вромановогорелинадворныепостройки.
+TITLEHASH:засуткивалтайскомкраеликвидировали10пожаров
