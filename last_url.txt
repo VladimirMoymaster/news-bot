@@ -1,9 +1,3 @@
-Сигнал поступил от дежурного по
-https://altai.aif.ru/incidents/pedkolledzh-v-barnaule-evakuirovali-iz-za-podozritelnogo-paketa
-https://altai.aif.ru/incidents/pedkolledzh-v-barnaule-evakuirovali-iz-za-podozritelnogo-paketa
-TITLE:Педколледж в Барнауле эвакуировали из-за подозрительного пакета
-https://altai.aif.ru/society/stihiynyy-skotomogilnik-likvidiruyut-v-sele-zavyalovo-na-altae
-https://altai.aif.ru/society/stihiynyy-skotomogilnik-likvidiruyut-v-sele-zavyalovo-na-altae
 TITLE:В Мамонтовском районе на Алтае введен карантин по лейкозу скота
 https://altai.aif.ru/incidents/brosil-na-pol-i-pinal-2-letniy-malysh-vpal-v-komu-posle-poboev-otca
 https://altai.aif.ru/incidents/brosil-na-pol-i-pinal-2-letniy-malysh-vpal-v-komu-posle-poboev-otca
@@ -296,7 +290,11 @@ TITLEHASH:натрассебийскбелокурихапроизошлолоб
 vk_-221195646_53351
 https://vk.com/wall-221195646_53351
 TITLE:🧀 В Бийске рецидивист украл 12-килограммовый брусок сыра и отправился в колонию
-
 31-летнего жителя Б
 TEXTHASH:🧀вбийскерецидивистукрал12-килограммовыйбрусоксыраиотправилсявколонию31-летнегожителябийскаприговорилик2,5годаколониистрогогорежимазасериюкражизпродуктовыхмагазинов.наегосчету—52эпизода.мужчинапряталпо
 TITLEHASH:вбийскерецидивистукрал12килограммовыйбрусоксыраиотправилсявколонию31летнегожителяб
+https://altai.aif.ru/society/pervyy-v-rossii-pet-friendly-sanatoriy-poyavilsya-v-altayskom-krae
+https://altai.aif.ru/society/pervyy-v-rossii-pet-friendly-sanatoriy-poyavilsya-v-altayskom-krae
+TITLE:хирург летит на Алтай спасать покалеченного пса Боя
+TEXTHASH:московскийнейрохирургсамприлетитвбарнаулрадисобакиспробитойголовой.
+TITLEHASH:хирурглетитнаалтайспасатьпокалеченногопсабоя
