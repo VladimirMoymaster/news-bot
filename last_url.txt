@@ -1,8 +1,3 @@
-TITLE:В Новоалтайске будут судить подростков за избиение незнакомца
-https://altai.aif.ru/incidents/v-barnaule-zaderzhali-muzhchinu-kotoryy-presledoval-byvshuyu-vozlyublennuyu
-https://altai.aif.ru/incidents/v-barnaule-zaderzhali-muzhchinu-kotoryy-presledoval-byvshuyu-vozlyublennuyu
-TITLE:В Барнауле задержали мужчину, который преследовал бывшую возлюбленную
-vk_-221195646_53266
 https://vk.com/wall-221195646_53266
 TITLE:❗️Подозреваемый в сталкинге жительницы Барнаула задержан
 накануне стало известно, что за дело по фа
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/na-svinovodcheskoy-ferme-na-altae-nashli-30-kg-za
 TITLE:На Алтае полиция перехватила курьеров с наркотиками в хлебе
 TEXTHASH:внутрихлебаспрятали27свертков.
 TITLEHASH:наалтаеполицияперехватилакурьеровснаркотикамивхлебе
+https://altai.aif.ru/society/na-altae-iz-za-taksistov-v-dtp-postradali-vosem-chelovek
+https://altai.aif.ru/society/na-altae-iz-za-taksistov-v-dtp-postradali-vosem-chelovek
+TITLE:Таксист напал на пассажира возле аэропорта в Барнауле
+TEXTHASH:клиентотказалсяплатитьбольше,чемуказановприложении
+TITLEHASH:таксистнапалнапассажиравозлеаэропортавбарнауле
