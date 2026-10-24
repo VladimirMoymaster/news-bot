@@ -1,9 +1,3 @@
-TITLE:В Алтайском крае в пожаре погибли 20 кур
-https://altai.aif.ru/incidents/-spasti-ne-udastsya-poyavilis-podrobnosti-pozhara-v-altayskoy-shkole
-https://altai.aif.ru/incidents/-spasti-ne-udastsya-poyavilis-podrobnosti-pozhara-v-altayskoy-shkole
-TITLE:В Алтайском крае пройдут пожарные учения с применением беспилотников
-https://altai.aif.ru/society/pochti-sotnya-zhiteley-altayskogo-kraya-postradala-ot-kleshchey-za-nedelyu
-https://altai.aif.ru/society/pochti-sotnya-zhiteley-altayskogo-kraya-postradala-ot-kleshchey-za-nedelyu
 TITLE:В Республике Алтай от укусов клещей пострадали более 3,6 тысяч человек
 https://altai.aif.ru/incidents/v_altayskom_krae_sdulo_vetrom_naduvnuyu_lodku_s_otdyhayushchimi
 https://altai.aif.ru/incidents/v_altayskom_krae_sdulo_vetrom_naduvnuyu_lodku_s_otdyhayushchimi
@@ -296,7 +290,13 @@ TITLEHASH:избитогопсабояпрооперируютвбарнауле
 vk_-75554521_93229
 https://vk.com/wall-75554521_93229
 TITLE:Пилот «Русских Витязей» Олег Ерофеев разбился во время учебного полета
-
 Полковник дважды, в 2024 и 2
 TEXTHASH:пилот«русскихвитязей»олегерофеевразбилсявовремяучебногополетаполковникдважды,в2024и2025годах,участвовалвавиашоунадобьювбарнаулевчестьднягорода.заслуженныйвоенныйлетчик‑снайпер,заместительначальникацен
 TITLEHASH:пилотрусскихвитязейолегерофеевразбилсявовремяучебногополетаполковникдваждыв2024и2
+vk_-221195646_53365
+https://vk.com/wall-221195646_53365
+TITLE:✈️Пилот «Русских Витязей» Олег Ерофеев разбился во время учебного полета
+
+Полковник дважды, в 2024 и
+TEXTHASH:✈️пилот«русскихвитязей»олегерофеевразбилсявовремяучебногополетаполковникдважды,в2024и2025годах,участвовалвавиашоунадобьювбарнаулевчестьднягорода.заслуженныйвоенныйлетчик‑снайпер,заместительначальникац
+TITLEHASH:пилотрусскихвитязейолегерофеевразбилсявовремяучебногополетаполковникдваждыв2024и
