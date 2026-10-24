@@ -1,8 +1,3 @@
-TITLE:В Мамонтовском районе на Алтае введен карантин по лейкозу скота
-https://altai.aif.ru/incidents/brosil-na-pol-i-pinal-2-letniy-malysh-vpal-v-komu-posle-poboev-otca
-https://altai.aif.ru/incidents/brosil-na-pol-i-pinal-2-letniy-malysh-vpal-v-komu-posle-poboev-otca
-TITLE:В Горно-Алтайске мужчина душил свою супругу и угрожать убить
-vk_-75554521_93179
 https://vk.com/wall-75554521_93179
 TITLE:⚡У бывшей сотрудницы казначейства в Алтайском крае изъяли имущество на 17 млн рублей
 В доход госуда
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/pervyy-v-rossii-pet-friendly-sanatoriy-poyavilsya-v
 TITLE:хирург летит на Алтай спасать покалеченного пса Боя
 TEXTHASH:московскийнейрохирургсамприлетитвбарнаулрадисобакиспробитойголовой.
 TITLEHASH:хирурглетитнаалтайспасатьпокалеченногопсабоя
+https://altai.aif.ru/incidents/v-barnaule-nochyu-gorel-chastnyy-dom
+https://altai.aif.ru/incidents/v-barnaule-nochyu-gorel-chastnyy-dom
+TITLE:Неисправный снегоход спровоцировал пожар в барнаульском гараже
+TEXTHASH:пострадавшихнет.
+TITLEHASH:неисправныйснегоходспровоцировалпожарвбарнаульскомгараже
