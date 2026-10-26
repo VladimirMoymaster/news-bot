@@ -1,9 +1,3 @@
-https://altai.aif.ru/incidents/v-barnaule-devushka-zabrala-u-mamy-pogibshego-boyca-svo-15-mln-rubley
-TITLE:Барнаулец «срубил» с доверчивых клиентов 6 млн и попал под суд
-https://altai.aif.ru/society/obvinyaemyy_v_korrupcii_eks-mer_slavgoroda_popytaetsya_osporit_svoyu_otstavku
-https://altai.aif.ru/society/obvinyaemyy_v_korrupcii_eks-mer_slavgoroda_popytaetsya_osporit_svoyu_otstavku
-TITLE:Экс-мэр Бийска Нонко не смог оспорить приговор по делу о «спековских» домах
-https://altai.aif.ru/society/prokuratura-razbiraetsya-v-zaderzhke-reysa-barnaul-sochi-iz-za-overbukinga
 https://altai.aif.ru/society/prokuratura-razbiraetsya-v-zaderzhke-reysa-barnaul-sochi-iz-za-overbukinga
 TITLE:Два рейса из Барнаула в Москву задержали более чем на 10 часов
 https://altai.aif.ru/society/v-barnaule-restavriruyut-fasad-istoricheskogo-osobnyaka
@@ -296,7 +290,11 @@ TITLEHASH:пьянаяездастоилажителюалтайскогокра
 vk_-75554521_93238
 https://vk.com/wall-75554521_93238
 TITLE:В Рубцовском районе «Тойота Ленд Крузер» сбила лошадей на трассе
-
 25 октября в 19:26 на 319 км автод
 TEXTHASH:врубцовскомрайоне«тойоталендкрузер»сбилалошадейнатрассе25октябряв19:26на319кмавтодорогиа-322«барнаул—рубцовск—границареспубликиказахстан»водитель1992годарожденияна«тойотелендкрузер200»,двигаясьизрубцо
 TITLEHASH:врубцовскомрайонетойоталендкрузерсбилалошадейнатрассе25октябряв1926на319кмавтод
+https://altai.aif.ru/incidents/v-gornom-altae-rasshirili-poiski-propavshego-sotrudnika-mchs
+https://altai.aif.ru/incidents/v-gornom-altae-rasshirili-poiski-propavshego-sotrudnika-mchs
+TITLE:На Алтае продолжаются поиски пропавшего сотрудника МЧС Игоря Большакова
+TEXTHASH:мужчинапропал17октября.
+TITLEHASH:наалтаепродолжаютсяпоискипропавшегосотрудникамчсигорябольшакова
