@@ -1,9 +1,3 @@
-vk_-75554521_93192
-https://vk.com/wall-75554521_93192
-TITLE:В барнаульской школе №137 ученик угрожал одноклассникам ножницами
-Четвероклассник врывался в кабине
-https://altai.aif.ru/incidents/v-barnaule-uchenik-4-klassa-ugrozhal-sverstnikam-nozhnicami
-https://altai.aif.ru/incidents/v-barnaule-uchenik-4-klassa-ugrozhal-sverstnikam-nozhnicami
 TITLE:В Барнауле ученик 4 класса угрожал сверстникам ножницами
 https://altai.aif.ru/incidents/vspyshka-rotavirusa-proizoshla-v-detskom-sadu-251-barnaula
 https://altai.aif.ru/incidents/vspyshka-rotavirusa-proizoshla-v-detskom-sadu-251-barnaula
@@ -296,7 +290,11 @@ TITLEHASH:двелошадипогибливдтпнатрассебарнаул
 vk_-75554521_93242
 https://vk.com/wall-75554521_93242
 TITLE:«Пожалела парня, как сына…» В Барнауле водитель сбил пенсионерку и уговорил ее не заявлять о ДТП
-
 20
 TEXTHASH:«пожалелапарня,каксына…»вбарнаулеводительсбилпенсионеркуиуговорилеенезаявлятьодтп20октябрягалинаниколаевнавозвращаласьдомойподворунапавловскомтракте,когдаеёсбилавтомобиль,двигавшийсяназад.женщинаоказа
 TITLEHASH:пожалелапарнякаксынавбарнаулеводительсбилпенсионеркуиуговорилеенезаявлятьодтп20
+https://altai.aif.ru/incidents/v-altayskom-krae-pri-pozhare-pogibli-10-kur
+https://altai.aif.ru/incidents/v-altayskom-krae-pri-pozhare-pogibli-10-kur
+TITLE:В Змеиногорске мужчину спасли из горящего дома
+TEXTHASH:причинойпожарасталанеисправностьпечи.
+TITLEHASH:взмеиногорскемужчинуспаслиизгорящегодома
