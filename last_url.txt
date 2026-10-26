@@ -1,8 +1,3 @@
-TITLE:😱Школьницы жестоко избили подростка в Бийске, возбуждено уголовное дело.
-Как пишет канал "ЧП Бийск"
-https://altai.aif.ru/incidents/na-altae-zaderzhali-pervogo-zamministra-kultury-po-delu-o-moshennichestve
-https://altai.aif.ru/incidents/na-altae-zaderzhali-pervogo-zamministra-kultury-po-delu-o-moshennichestve
-TITLE:На Алтае задержали первого замминистра культуры по делу о мошенничестве
 vk_-221195646_53283
 https://vk.com/wall-221195646_53283
 TITLE:😞 В Шелаболихинском районе разрушается памятник Великой Отечественной войны и братская могила
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/rabochemu-amputirovali-nogu-posle-chp-na-stroyke-
 TITLE:Семье погибшего на руднике в Республике Алтай выплатят один млн рублей
 TEXTHASH:прокуратурадобиласькомпенсацииморальноговреда.
 TITLEHASH:семьепогибшегонарудникевреспубликеалтайвыплатятодинмлнрублей
+https://altai.aif.ru/society/barnaulec-srubil-s-doverchivyh-klientov-6-mln-i-popal-pod-sud
+https://altai.aif.ru/society/barnaulec-srubil-s-doverchivyh-klientov-6-mln-i-popal-pod-sud
+TITLE:Алтайский краевой суд рассмотрит дело экс-директора завода мехпрессов
+TEXTHASH:наприговорподанаапелляция.
+TITLEHASH:алтайскийкраевойсудрассмотритделоэксдиректоразаводамехпрессов
