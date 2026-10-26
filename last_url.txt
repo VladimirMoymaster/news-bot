@@ -1,8 +1,3 @@
-https://altai.aif.ru/society/prokuratura-razbiraetsya-v-zaderzhke-reysa-barnaul-sochi-iz-za-overbukinga
-TITLE:Два рейса из Барнаула в Москву задержали более чем на 10 часов
-https://altai.aif.ru/society/v-barnaule-restavriruyut-fasad-istoricheskogo-osobnyaka
-https://altai.aif.ru/society/v-barnaule-restavriruyut-fasad-istoricheskogo-osobnyaka
-TITLE:В Бийске рухнул купол особняка Кричевцева, пропал кованый шпиль
 https://altai.aif.ru/incidents/byvshey-zamglavy-zheleznodorozhnogo-rayona-barnaula-osudili-za-rastratu
 https://altai.aif.ru/incidents/byvshey-zamglavy-zheleznodorozhnogo-rayona-barnaula-osudili-za-rastratu
 TITLE:На Алтае инспектора осудили за продажу прав тракториста
@@ -298,3 +293,10 @@ https://altai.aif.ru/incidents/v-gornom-altae-rasshirili-poiski-propavshego-sotr
 TITLE:На Алтае продолжаются поиски пропавшего сотрудника МЧС Игоря Большакова
 TEXTHASH:мужчинапропал17октября.
 TITLEHASH:наалтаепродолжаютсяпоискипропавшегосотрудникамчсигорябольшакова
+vk_-221195646_53383
+https://vk.com/wall-221195646_53383
+TITLE:🐎 Две лошади погибли в ДТП на трассе Барнаул - Рубцовск
+
+ДТП произошло вечером 25 октября в Рубцовск
+TEXTHASH:🐎двелошадипогибливдтпнатрассебарнаул-рубцовскдтппроизошловечером25октябряврубцовскомрайоне.на319-мкилометретрассыа-322«барнаул-рубцовск-границареспубликиказахстан»внедорожникстолкнулсясдвумялошадьми,п
+TITLEHASH:двелошадипогибливдтпнатрассебарнаулрубцовскдтппроизошловечером25октябряврубцовск
