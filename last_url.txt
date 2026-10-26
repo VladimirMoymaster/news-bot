@@ -1,9 +1,3 @@
-https://altai.aif.ru/incidents/deti-sgorevshey-na-altae-shkoly-otpravilis-na-dosrochnye-kanikuly
-TITLE:За сутки на Алтае потушили 10 пожаров
-https://altai.aif.ru/society/mediki-skoroy-pomoshchi-v-barnaule-prinyali-stremitelnye-rody-na-domu
-https://altai.aif.ru/society/mediki-skoroy-pomoshchi-v-barnaule-prinyali-stremitelnye-rody-na-domu
-TITLE:Скорая Барнаула спасла жизни при 95 инсультах за неделю
-https://altai.aif.ru/incidents/v-barnaule-devushka-zabrala-u-mamy-pogibshego-boyca-svo-15-mln-rubley
 https://altai.aif.ru/incidents/v-barnaule-devushka-zabrala-u-mamy-pogibshego-boyca-svo-15-mln-rubley
 TITLE:Барнаулец «срубил» с доверчивых клиентов 6 млн и попал под суд
 https://altai.aif.ru/society/obvinyaemyy_v_korrupcii_eks-mer_slavgoroda_popytaetsya_osporit_svoyu_otstavku
@@ -296,7 +290,13 @@ TITLEHASH:алтайскийкраевойсудрассмотритделоэк
 vk_-221195646_53382
 https://vk.com/wall-221195646_53382
 TITLE:⚡Пьяная езда стоила жителю Алтайского края «Лексуса»: приставы передали машину на нужды СВО
-
 32-летн
 TEXTHASH:⚡пьянаяездастоилажителюалтайскогокрая«лексуса»:приставыпередалимашинунануждысво32-летнийжительпервомайскогорайонанеоднократносадилсязарульвсостоянииопьянения.послеочереднойостановкисотрудникамигаинаму
 TITLEHASH:пьянаяездастоилажителюалтайскогокраялексусаприставыпередалимашинунануждысво32летн
+vk_-75554521_93238
+https://vk.com/wall-75554521_93238
+TITLE:В Рубцовском районе «Тойота Ленд Крузер» сбила лошадей на трассе
+
+25 октября в 19:26 на 319 км автод
+TEXTHASH:врубцовскомрайоне«тойоталендкрузер»сбилалошадейнатрассе25октябряв19:26на319кмавтодорогиа-322«барнаул—рубцовск—границареспубликиказахстан»водитель1992годарожденияна«тойотелендкрузер200»,двигаясьизрубцо
+TITLEHASH:врубцовскомрайонетойоталендкрузерсбилалошадейнатрассе25октябряв1926на319кмавтод
