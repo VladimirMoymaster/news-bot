@@ -1,8 +1,3 @@
-TITLE:В Барнауле после вспышки инфекции в детском саду возбуждено уголовное дело
-https://altai.aif.ru/incidents/dva-cheloveka-pogibli-pri-vezde-avtomobilya-v-zhiloy-dom-na-altae
-https://altai.aif.ru/incidents/dva-cheloveka-pogibli-pri-vezde-avtomobilya-v-zhiloy-dom-na-altae
-TITLE:В Барнауле из-за аварии на теплосетях пострадали два человека
-vk_-75554521_93198
 https://vk.com/wall-75554521_93198
 TITLE:🚨 В Барнауле прорвало теплосеть: пострадали два человека
 На улице Попова, 166а, горячая вода вышла
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/pacienty-poliklinik-na-altae-stolknulis-s-novym-vid
 TITLE:Пациенты поликлиник на Алтае столкнулись с новым видом мошенничества
 TEXTHASH:имприходятсообщенияякобыот«справочной».
 TITLEHASH:пациентыполиклиникнаалтаестолкнулисьсновымвидоммошенничества
+https://altai.aif.ru/incidents/na-altae-podrostki-s-boycovoy-sobakoy-izbili-13-letnego-malchika
+https://altai.aif.ru/incidents/na-altae-podrostki-s-boycovoy-sobakoy-izbili-13-letnego-malchika
+TITLE:На Алтае подростки с бойцовой собакой избили 13‑летнего мальчика
+TEXTHASH:ребеноквместесдругомвозвращалсядомой.
+TITLEHASH:наалтаеподросткисбойцовойсобакойизбили13летнегомальчика
