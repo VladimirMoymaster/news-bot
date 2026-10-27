@@ -1,8 +1,3 @@
-https://vk.com/wall-221195646_53303
-TITLE:😥В Новоалтайске мать несколько лет избивала дочь
-57-летнюю женщину обвиняют в систематическом истяз
-https://altai.aif.ru/incidents/v-biyske-dvuhletniy-malchik-otravilsya-tabletkoy-ot-tarakanov
-https://altai.aif.ru/incidents/v-biyske-dvuhletniy-malchik-otravilsya-tabletkoy-ot-tarakanov
 TITLE:В Барнауле после вспышки инфекции в детском саду возбуждено уголовное дело
 https://altai.aif.ru/incidents/dva-cheloveka-pogibli-pri-vezde-avtomobilya-v-zhiloy-dom-na-altae
 https://altai.aif.ru/incidents/dva-cheloveka-pogibli-pri-vezde-avtomobilya-v-zhiloy-dom-na-altae
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/v-barnaule-prorvalo-metrovuyu-trubu-bez-tepla-ostal
 TITLE:В Горно-Алтайское грузовик сбил 7-летнюю девочку
 TEXTHASH:аварияпроизошлаввоскресенье.
 TITLEHASH:вгорноалтайскоегрузовиксбил7летнююдевочку
+https://altai.aif.ru/society/pacienty-poliklinik-na-altae-stolknulis-s-novym-vidom-moshennichestva
+https://altai.aif.ru/society/pacienty-poliklinik-na-altae-stolknulis-s-novym-vidom-moshennichestva
+TITLE:Пациенты поликлиник на Алтае столкнулись с новым видом мошенничества
+TEXTHASH:имприходятсообщенияякобыот«справочной».
+TITLEHASH:пациентыполиклиникнаалтаестолкнулисьсновымвидоммошенничества
