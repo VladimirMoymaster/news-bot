@@ -1,8 +1,3 @@
-TITLE:Житель Горно-Алтайска разбил чужой автомобиль из-за сестры
-TEXTHASH:возбужденоуголовноедело.
-https://altai.aif.ru/incidents/v-barnaule-ustranili-avariyu-na-setyah-iz-za-kotoroy-postradali-dvoe-chelovek
-https://altai.aif.ru/incidents/v-barnaule-ustranili-avariyu-na-setyah-iz-za-kotoroy-postradali-dvoe-chelovek
-TITLE:В Барнауле устранили аварию на сетях, из-за которой пострадали двое человек
 TEXTHASH:сетьзаполнилитеплоносителемизапустилициркуляцию.
 vk_-221195646_53311
 https://vk.com/wall-221195646_53311
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/na-altae-podrostok-uehal-na-motocikle-v-gory-i-ne
 TITLE:Пропавший Усольцев найден живым на Алтае
 TEXTHASH:волонтеры«лизаалерт»сообщилиоблагополучномзавершениипоисковгорожанина.
 TITLEHASH:пропавшийусольцевнайденживымнаалтае
+https://altai.aif.ru/incidents/sud-vynes-prigovor-byvshemu-vice-gubernatoru-altayskogo-kraya-ivanu-kibardinu
+https://altai.aif.ru/incidents/sud-vynes-prigovor-byvshemu-vice-gubernatoru-altayskogo-kraya-ivanu-kibardinu
+TITLE:Мосгорсуд изменил приговор экс-вице-губернатору Алтая Кибардину
+TEXTHASH:защитаипрокуратураобжаловалирешение.
+TITLEHASH:мосгорсудизменилприговорэксвицегубернаторуалтаякибардину
