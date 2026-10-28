@@ -1,8 +1,3 @@
-https://vk.com/wall-75554521_93198
-TITLE:🚨 В Барнауле прорвало теплосеть: пострадали два человека
-На улице Попова, 166а, горячая вода вышла
-https://altai.aif.ru/incidents/zhitel-gorno-altayska-razbil-chuzhoy-avtomobil-iz-za-sestry
-https://altai.aif.ru/incidents/zhitel-gorno-altayska-razbil-chuzhoy-avtomobil-iz-za-sestry
 TITLE:Житель Горно-Алтайска разбил чужой автомобиль из-за сестры
 TEXTHASH:возбужденоуголовноедело.
 https://altai.aif.ru/incidents/v-barnaule-ustranili-avariyu-na-setyah-iz-za-kotoroy-postradali-dvoe-chelovek
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/na-altae-podrostki-s-boycovoy-sobakoy-izbili-13-l
 TITLE:На Алтае подростки с бойцовой собакой избили 13‑летнего мальчика
 TEXTHASH:ребеноквместесдругомвозвращалсядомой.
 TITLEHASH:наалтаеподросткисбойцовойсобакойизбили13летнегомальчика
+https://altai.aif.ru/incidents/na-altae-podrostok-uehal-na-motocikle-v-gory-i-ne-vernulsya
+https://altai.aif.ru/incidents/na-altae-podrostok-uehal-na-motocikle-v-gory-i-ne-vernulsya
+TITLE:Пропавший Усольцев найден живым на Алтае
+TEXTHASH:волонтеры«лизаалерт»сообщилиоблагополучномзавершениипоисковгорожанина.
+TITLEHASH:пропавшийусольцевнайденживымнаалтае
