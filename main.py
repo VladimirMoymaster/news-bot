@@ -587,7 +587,7 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None):
-    signature = '\n\n📌 <a href="https://max.ru/join/hafpWBhRmo-zf-QYuFkzd-GSPiaNb-q86W7vUsiAb2c"><b>Барнаул ЧП | Новости и Разборы</b></a>'
+    signature = '\n\n📌 <a href="https://max.ru/channel_barnaylcp"><b>Барнаул ЧП | Новости и Разборы</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
     
     if image_url and len(text) + len(signature) <= 1024:
