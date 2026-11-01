@@ -1,8 +1,3 @@
-TITLEHASH:наалтаемужчинаиздевалсянаддетьмисожительницы46летнийжительпервомайскогорайонапредста
-https://altai.aif.ru/incidents/-privezli-tri-groba-pochemu-mama-pediatr-ubila-svoih-malyshey
-https://altai.aif.ru/incidents/-privezli-tri-groba-pochemu-mama-pediatr-ubila-svoih-malyshey
-TITLE:На Алтае спустя 24 года раскрыли изнасилование и убийство девушки
-TEXTHASH:обвинениепредъявленодвумместнымжителям.
 TITLEHASH:наалтаеспустя24годараскрылиизнасилованиеиубийстводевушки
 vk_-75554521_93215
 https://vk.com/wall-75554521_93215
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/sem-pozharov-potushili-v-altayskom-krae-za-sutki
 TITLE:В Барнауле из горящей многоэтажки спасли мужчину
 TEXTHASH:наулицебалтийскойгорелибалконы.
 TITLEHASH:вбарнаулеизгорящеймногоэтажкиспаслимужчину
+https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
+https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
+TITLE:В Алтайском крае участились пожары на свалках
+TEXTHASH:31октябрягорелмусорвкамне-на-оби
+TITLEHASH:валтайскомкраеучастилисьпожарынасвалках
