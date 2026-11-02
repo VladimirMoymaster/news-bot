@@ -1,8 +1,3 @@
-https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
-https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
-TITLE:Экс-руководителей страховой компании в Барнауле осудили за фальсификацию
-TEXTHASH:онизавышалиданныеоналичных,чтобысохранитьлицензию.
-TITLEHASH:эксруководителейстраховойкомпаниивбарнаулеосудилизафальсификацию
 vk_-75554521_93222
 https://vk.com/wall-75554521_93222
 TITLE:На трассе Бийск — Белокуриха произошло лобовое столкновение, пострадали две пассажирки
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/za-minuvshie-sutki-v-altayskom-krae-potushili-14-
 TITLE:В Барнауле при пожаре в пятиэтажке спасли восемь человек
 TEXTHASH:огоньохватилквартирунапятомэтаженаантонапетрова
 TITLEHASH:вбарнаулеприпожаревпятиэтажкеспасливосемьчеловек
+https://altai.aif.ru/incidents/dtp/pyanyy-19-letniy-voditel-sbil-motociklista-vo-vremya-pogoni-na-altae
+https://altai.aif.ru/incidents/dtp/pyanyy-19-letniy-voditel-sbil-motociklista-vo-vremya-pogoni-na-altae
+TITLE:В Барнауле за выходные задержали 26 пьяных водителей
+TEXTHASH:ещё23человекаселизарульбезправилибудучиихлишёнными.
+TITLEHASH:вбарнаулезавыходныезадержали26пьяныхводителей
