@@ -1,9 +1,3 @@
-TITLEHASH:вбийскепристолкновениидвухмашинпострадалаженщина
-https://altai.aif.ru/incidents/za-sutki-na-altae-potushili-10-pozharov
-https://altai.aif.ru/incidents/za-sutki-na-altae-potushili-10-pozharov
-TITLE:За сутки в Алтайском крае ликвидировали 10 пожаров
-TEXTHASH:вромановогорелинадворныепостройки.
-TITLEHASH:засуткивалтайскомкраеликвидировали10пожаров
 https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
 https://altai.aif.ru/incidents/v-barnaule-osudili-zastroyshchika-za-sryv-stroyki-i-prisvoenie-deneg
 TITLE:Экс-руководителей страховой компании в Барнауле осудили за фальсификацию
@@ -296,7 +290,11 @@ TITLEHASH:анекдотднянаалтаеженщинавызвалаполи
 vk_-221195646_53452
 https://vk.com/wall-221195646_53452
 TITLE:🥺В Барнауле собака насмерть загрызла кота на глазах у прохожей
-
 Участница нашего сообщества Марина р
 TEXTHASH:🥺вбарнаулесобаканасмертьзагрызлакотанаглазахупрохожейучастницанашегосообществамаринарассказалаопроисшествии,котороеслучилось29октябрянавласихинскойулице.поеёсловам,онаехалаподорогеиувидела,каккрупнаяс
 TITLEHASH:вбарнаулесобаканасмертьзагрызлакотанаглазахупрохожейучастницанашегосообществамаринар
+https://altai.aif.ru/incidents/za-minuvshie-sutki-v-altayskom-krae-potushili-14-pozharov
+https://altai.aif.ru/incidents/za-minuvshie-sutki-v-altayskom-krae-potushili-14-pozharov
+TITLE:В Барнауле при пожаре в пятиэтажке спасли восемь человек
+TEXTHASH:огоньохватилквартирунапятомэтаженаантонапетрова
+TITLEHASH:вбарнаулеприпожаревпятиэтажкеспасливосемьчеловек
