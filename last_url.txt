@@ -1,8 +1,3 @@
-TITLEHASH:пилотрусскихвитязейолегерофеевразбилсявовремяучебногополетаполковникдваждыв2024и
-https://altai.aif.ru/incidents/rabochemu-amputirovali-nogu-posle-chp-na-stroyke-v-aleyske
-https://altai.aif.ru/incidents/rabochemu-amputirovali-nogu-posle-chp-na-stroyke-v-aleyske
-TITLE:Семье погибшего на руднике в Республике Алтай выплатят один млн рублей
-TEXTHASH:прокуратурадобиласькомпенсацииморальноговреда.
 TITLEHASH:семьепогибшегонарудникевреспубликеалтайвыплатятодинмлнрублей
 https://altai.aif.ru/society/barnaulec-srubil-s-doverchivyh-klientov-6-mln-i-popal-pod-sud
 https://altai.aif.ru/society/barnaulec-srubil-s-doverchivyh-klientov-6-mln-i-popal-pod-sud
@@ -298,3 +293,10 @@ https://altai.aif.ru/incidents/v-barnaule-na-ulice-yadrinceva-proizoshyol-pozhar
 TITLE:249 лесных пожаров произошло в Алтайском крае в 2026 году
 TEXTHASH:этотна60больше,чемвпредыдущемгоду.
 TITLEHASH:249лесныхпожаровпроизошловалтайскомкраев2026году
+vk_-221195646_53470
+https://vk.com/wall-221195646_53470
+TITLE:😔Умер дедушка, крестивший машины на Комсомольском проспекте в Барнауле
+
+87-летний старик был знаком
+TEXTHASH:😔умердедушка,крестившиймашинынакомсомольскомпроспектевбарнауле87-летнийстарикбылзнакоммногим:мужчиначастовыходилкпроезжейчастиикрестилмашины,желаяблага.каквыяснилось,этоизвестныймиссионерипроповедники
+TITLEHASH:умердедушкакрестившиймашинынакомсомольскомпроспектевбарнауле87летнийстарикбылзнаком
