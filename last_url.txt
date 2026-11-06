@@ -1,8 +1,3 @@
-https://altai.aif.ru/incidents/dtp/avtomobil-policii-perevernulsya-posle-nochnogo-dtp-v-barnaule
-TITLE:На Алтае при опрокидывании иномарки погибли два человека
-TEXTHASH:ещёодинпассажиргоспитализированстравмами.
-TITLEHASH:наалтаеприопрокидываниииномаркипогиблидвачеловека
-vk_-221195646_53405
 https://vk.com/wall-221195646_53405
 TITLE:В Барнауле волонтёры спасают семь собак из дома умершей пенсионерки
 После смерти пожилой женщины в
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/v-barnaule-vrachi-proveli-redkuyu-operaciyu-i-spasl
 TITLE:В Барнауле спасли пенсионерку с запущенным флюсом
 TEXTHASH:стоматологиотказалисьудалятьзубпациенткесослабымсердцем.
 TITLEHASH:вбарнаулеспаслипенсионеркусзапущеннымфлюсом
+https://altai.aif.ru/society/viktor-tomenko-vstretilsya-s-novym-glavoy-gu-mchs-po-altayskomu-krayu
+https://altai.aif.ru/society/viktor-tomenko-vstretilsya-s-novym-glavoy-gu-mchs-po-altayskomu-krayu
+TITLE:Виктор Томенко встретился с новым главой ГУ МЧС по Алтайскому краю
+TEXTHASH:участникивстречирассмотреливопросывзаимодействиякраевыхучрежденийсведомством.
+TITLEHASH:виктортоменковстретилсясновымглавойгумчспоалтайскомукраю
