@@ -1,9 +1,3 @@
-https://altai.aif.ru/incidents/sem-pozharov-potushili-v-altayskom-krae-za-sutki
-TITLE:В Барнауле из горящей многоэтажки спасли мужчину
-TEXTHASH:наулицебалтийскойгорелибалконы.
-TITLEHASH:вбарнаулеизгорящеймногоэтажкиспаслимужчину
-https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
-https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
 TITLE:В Алтайском крае участились пожары на свалках
 TEXTHASH:31октябрягорелмусорвкамне-на-оби
 TITLEHASH:валтайскомкраеучастилисьпожарынасвалках
@@ -296,7 +290,11 @@ TITLEHASH:приговорзазахватзаложникаистрельбув
 vk_-75554521_93339
 https://vk.com/wall-75554521_93339
 TITLE:15-летний подросток устроил смертельное ДТП: погиб 14-летний пассажир
-
 Авария произошла сегодня, 9 н
 TEXTHASH:15-летнийподростокустроилсмертельноедтп:погиб14-летнийпассажираварияпроизошласегодня,9ноября,около02:50натрассеновоегорьевское-титовка-новичиха.,15-летнийводительtoyotacorollaехалотселапетуховлогвстор
 TITLEHASH:15летнийподростокустроилсмертельноедтппогиб14летнийпассажираварияпроизошласегодня9н
+https://altai.aif.ru/society/pacienty-poliklinik-na-altae-stolknulis-s-novym-vidom-moshennichestva
+https://altai.aif.ru/society/pacienty-poliklinik-na-altae-stolknulis-s-novym-vidom-moshennichestva
+TITLE:Пять сотрудников автосалона в Барнауле осуждены за мошенничество
+TEXTHASH:большинствупотерпевшихвозместилиущерб.
+TITLEHASH:пятьсотрудниковавтосалонавбарнаулеосужденызамошенничество
