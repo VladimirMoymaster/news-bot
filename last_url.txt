@@ -1,8 +1,3 @@
-https://altai.aif.ru/incidents/za-minuvshie-sutki-v-altayskom-krae-potushili-14-pozharov
-TITLE:В Барнауле при пожаре в пятиэтажке спасли восемь человек
-TEXTHASH:огоньохватилквартирунапятомэтаженаантонапетрова
-TITLEHASH:вбарнаулеприпожаревпятиэтажкеспасливосемьчеловек
-https://altai.aif.ru/incidents/dtp/pyanyy-19-letniy-voditel-sbil-motociklista-vo-vremya-pogoni-na-altae
 https://altai.aif.ru/incidents/dtp/pyanyy-19-letniy-voditel-sbil-motociklista-vo-vremya-pogoni-na-altae
 TITLE:В Барнауле за выходные задержали 26 пьяных водителей
 TEXTHASH:ещё23человекаселизарульбезправилибудучиихлишёнными.
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/zaderzhana-pervyy-zamministra-kultury-respubliki-
 TITLE:Задержана первый замминистра культуры Республики Алтай
 TEXTHASH:ейпредъявленообвинениевмошенничествеизлоупотреблениидолжностнымиполномочиями.
 TITLEHASH:задержанапервыйзамминистракультурыреспубликиалтай
+https://altai.aif.ru/incidents/v-barnaule-zhenshchine-vyplatyat-200-tysyach-rubley-za-poteryannyy-na-rabote-palec
+https://altai.aif.ru/incidents/v-barnaule-zhenshchine-vyplatyat-200-tysyach-rubley-za-poteryannyy-na-rabote-palec
+TITLE:В Барнауле женщине выплатили 200 тысяч рублей за потерянный на работе палец
+TEXTHASH:работодательнеоформилнесчастныйслучайвустановленномпорядке.
+TITLEHASH:вбарнаулеженщиневыплатили200тысячрублейзапотерянныйнаработепалец
