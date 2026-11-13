@@ -1,9 +1,3 @@
-TEXTHASH:ограничениясвязанысплановымиработами.
-TITLEHASH:пожарнаячастьиряддомовостанутсябезводы5ноябрявбарнауле
-https://altai.aif.ru/incidents/dtp/massovoe-dtp-s-shestyu-mashinami-proizoshlo-v-barnaule
-https://altai.aif.ru/incidents/dtp/massovoe-dtp-s-shestyu-mashinami-proizoshlo-v-barnaule
-TITLE:Водитель кроссовера сбил школьника на велосипеде в Барнауле
-TEXTHASH:аварияпроизошланаулицевзлётной.
 TITLEHASH:водителькроссоверасбилшкольниканавелосипедевбарнауле
 https://altai.aif.ru/society/byvshego-vice-mera-barnaula-shelomenceva-otpravili-v-koloniyu
 https://altai.aif.ru/society/byvshego-vice-mera-barnaula-shelomenceva-otpravili-v-koloniyu
@@ -296,7 +290,11 @@ TITLEHASH:верховныйсудоставилвсилеприговоруме
 vk_-75554521_93354
 https://vk.com/wall-75554521_93354
 TITLE:В Барнауле приставы арестовали у девушки автомобиль Infiniti за 32 неоплаченных штрафа
-
 В Барнауле с
 TEXTHASH:вбарнаулеприставыарестовалиудевушкиавтомобильinfinitiза32неоплаченныхштрафавбарнаулесудебныеприставыврамкахпрофилактическогомероприятия"должник"арестовалиавтомобильгорожанкис32неоплаченнымиштрафамигиб
 TITLEHASH:вбарнаулеприставыарестовалиудевушкиавтомобильinfinitiза32неоплаченныхштрафавбарнаулес
+https://altai.aif.ru/society/fsb-prosit-zhiteley-altaya-byt-bditelnymi-v-internete
+https://altai.aif.ru/society/fsb-prosit-zhiteley-altaya-byt-bditelnymi-v-internete
+TITLE:21-летнего жителя Рубцовска осудили на 12 лет за диверсии
+TEXTHASH:пареньпопалзарешеткузаподжогвышексвязи.
+TITLEHASH:21летнегожителярубцовскаосудилина12летзадиверсии
