@@ -1,8 +1,3 @@
-TITLEHASH:водителькроссоверасбилшкольниканавелосипедевбарнауле
-https://altai.aif.ru/society/byvshego-vice-mera-barnaula-shelomenceva-otpravili-v-koloniyu
-https://altai.aif.ru/society/byvshego-vice-mera-barnaula-shelomenceva-otpravili-v-koloniyu
-TITLE:Защищавшего барнаульских чиновников адвоката Сергутова задержали
-TEXTHASH:возможно,судрассмотритмерупресеченияуже5ноября.
 TITLEHASH:защищавшегобарнаульскихчиновниковадвокатасергутовазадержали
 https://altai.aif.ru/incidents/neispravnyy-snegohod-sprovociroval-pozhar-v-barnaulskom-garazhe
 https://altai.aif.ru/incidents/neispravnyy-snegohod-sprovociroval-pozhar-v-barnaulskom-garazhe
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/fsb-prosit-zhiteley-altaya-byt-bditelnymi-v-interne
 TITLE:21-летнего жителя Рубцовска осудили на 12 лет за диверсии
 TEXTHASH:пареньпопалзарешеткузаподжогвышексвязи.
 TITLEHASH:21летнегожителярубцовскаосудилина12летзадиверсии
+https://altai.aif.ru/incidents/na-altay-budut-sudit-grabitelya-napavshego-na-devushku-v-novoaltayske
+https://altai.aif.ru/incidents/na-altay-budut-sudit-grabitelya-napavshego-na-devushku-v-novoaltayske
+TITLE:Бийский фельдшер получил травму ноги, провалившись в люк на вызове
+TEXTHASH:мужчинапоранилправуюногу.
+TITLEHASH:бийскийфельдшерполучилтравмуногипровалившисьвлюкнавызове
