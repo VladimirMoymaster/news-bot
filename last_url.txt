@@ -1,8 +1,3 @@
-https://vk.com/wall-221195646_53498
-TITLE:🔪 В Алтайском крае спустя 13 лет раскрыли жестокое убийство женщины
-По данным следствия, мужчина по
-TEXTHASH:🔪валтайскомкраеспустя13летраскрылижестокоеубийствоженщины,мужчинапознакомилсясженщинойврубцовскеипригласилеёнаберегрекиалей.послеотказаназнакивниманияонизбилзнакомуюистолкнулврекустемпературойводыневы
-TITLEHASH:валтайскомкраеспустя13летраскрылижестокоеубийствоженщиныподаннымследствиямужчинапо
 https://altai.aif.ru/health/skoraya-v-barnaule-za-nedelyu-vyezzhala-na-vyzovy-pochti-5-tys-raz
 https://altai.aif.ru/health/skoraya-v-barnaule-za-nedelyu-vyezzhala-na-vyzovy-pochti-5-tys-raz
 TITLE:Скорая в Барнауле за неделю выезжала на вызовы почти пять тысяч раз
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/aktera-iz-barnaula-i-ego-zhenu-mogut-priznat-vino
 TITLE:Уроженца Барнаула пожизненно осудили в Таиланде за жестокое убийство
 TEXTHASH:речьидето35-летнемярославедемидове.
 TITLEHASH:уроженцабарнаулапожизненноосудиливтаиландезажестокоеубийство
+https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
+https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
+TITLE:Рецидивист из Славгорода устроил смертельный пожар после пьяной ссоры
+TEXTHASH:подозреваемыйподжегодеждувихкомнатах.
+TITLEHASH:рецидивистизславгородаустроилсмертельныйпожарпослепьянойссоры
