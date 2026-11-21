@@ -1,8 +1,3 @@
-https://altai.aif.ru/incidents/dtp/pyanyy-voditel-bez-prav-ustroil-smertelnoe-dtp-v-respublike-altay
-https://altai.aif.ru/incidents/dtp/pyanyy-voditel-bez-prav-ustroil-smertelnoe-dtp-v-respublike-altay
-TITLE:Два пешехода пострадали в утренних ДТП в Бийске
-TEXTHASH:состояниеодногоизнихоцениваюткактяжёлое
-TITLEHASH:двапешеходапострадаливутреннихдтпвбийске
 vk_-75554521_93341
 https://vk.com/wall-75554521_93341
 TITLE:Не смогла описать, как выглядел муж: На Алтае признали недействительным брак участника СВО с «чёрной
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/socseti-malchiku-otorvalo-palec-petardoy-v-barnau
 TITLE:В Бийске вступил в силу приговор по делу о гибели ребенка при взрыве газа
 TEXTHASH:обжаловатьприговорнеполучилось.
 TITLEHASH:вбийскевступилвсилуприговорподелуогибелиребенкапривзрывегаза
+https://altai.aif.ru/incidents/policiya-biyskogo-rayona-izyala-u-brakonera-redkuyu-rybu
+https://altai.aif.ru/incidents/policiya-biyskogo-rayona-izyala-u-brakonera-redkuyu-rybu
+TITLE:Браконьеры на Алтае получили по три года условно за отстрел лося
+TEXTHASH:мужчиныубилиживотноевовремязапретанаохоту.
+TITLEHASH:браконьерынаалтаеполучилипотригодаусловнозаотстреллося
