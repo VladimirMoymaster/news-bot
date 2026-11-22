@@ -1,8 +1,3 @@
-TITLEHASH:жительрубцовскаосужденна5летзасозданиеэкстремистскогосообществав2023годуонсоздалк
-https://altai.aif.ru/incidents/zhitel-novoaltayska-poluchil-shtraf-v-2-5-mln-rubley-za-propagandu-terrorizma
-https://altai.aif.ru/incidents/zhitel-novoaltayska-poluchil-shtraf-v-2-5-mln-rubley-za-propagandu-terrorizma
-TITLE:Жителя Алтая отправили под стражу за комментарий с пропагандой терроризма
-TEXTHASH:52-летниймужчинаоставилеговсоцсетивиюне.
 TITLEHASH:жителяалтаяотправилиподстражузакомментарийспропагандойтерроризма
 https://altai.aif.ru/incidents/mnogodetnaya-semya-chudom-spaslas-pri-krupnom-pozhare-na-altae
 https://altai.aif.ru/incidents/mnogodetnaya-semya-chudom-spaslas-pri-krupnom-pozhare-na-altae
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/bolee-polusotni-spasateley-tushat-goryashchiy-skl
 TITLE:В Барнауле при пожаре на улице Заводской Взвоз погибла пожилая женщина
 TEXTHASH:огоньохватил60квадратныхметровкрышичастногодома.
 TITLEHASH:вбарнаулеприпожаренаулицезаводскойвзвозпогиблапожилаяженщина
+https://altai.aif.ru/society/soyuz-armyan-peredal-frontu-bolshe-120-korobok-s-medikamentami
+https://altai.aif.ru/society/soyuz-armyan-peredal-frontu-bolshe-120-korobok-s-medikamentami
+TITLE:Скорая помощь Барнаула за неделю выполнила 5196 вызовов
+TEXTHASH:среднесуточнаянагрузканабригадусоставила12,8случая.
+TITLEHASH:скораяпомощьбарнаулазанеделювыполнила5196вызовов
