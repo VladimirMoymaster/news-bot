@@ -1,8 +1,3 @@
-vk_-221195646_53528
-https://vk.com/wall-221195646_53528
-TITLE:Житель Рубцовска осужден на 5 лет за создание экстремистского сообщества
-В 2023 году он создал к
-TEXTHASH:жительрубцовскаосужденна5летзасозданиеэкстремистскогосообществав2023годуонсоздалканалводномизмессенджеров,транслирующийидеипревосходствачеловекапопризнакунациональнойисоциальнойпринадлежности.размещен
 TITLEHASH:жительрубцовскаосужденна5летзасозданиеэкстремистскогосообществав2023годуонсоздалк
 https://altai.aif.ru/incidents/zhitel-novoaltayska-poluchil-shtraf-v-2-5-mln-rubley-za-propagandu-terrorizma
 https://altai.aif.ru/incidents/zhitel-novoaltayska-poluchil-shtraf-v-2-5-mln-rubley-za-propagandu-terrorizma
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/hozpostroyki-na-60-kvadratah-sgoreli-iz-za-pechi-
 TITLE:В Барнауле ночной пожар повредил строительные вагончики
 TEXTHASH:пострадавшихнет.
 TITLEHASH:вбарнауленочнойпожарповредилстроительныевагончики
+https://altai.aif.ru/incidents/bolee-polusotni-spasateley-tushat-goryashchiy-sklad-v-barnaule
+https://altai.aif.ru/incidents/bolee-polusotni-spasateley-tushat-goryashchiy-sklad-v-barnaule
+TITLE:В Барнауле при пожаре на улице Заводской Взвоз погибла пожилая женщина
+TEXTHASH:огоньохватил60квадратныхметровкрышичастногодома.
+TITLEHASH:вбарнаулеприпожаренаулицезаводскойвзвозпогиблапожилаяженщина
