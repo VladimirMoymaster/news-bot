@@ -1,8 +1,3 @@
-TITLEHASH:жителяалтаяотправилиподстражузакомментарийспропагандойтерроризма
-https://altai.aif.ru/incidents/mnogodetnaya-semya-chudom-spaslas-pri-krupnom-pozhare-na-altae
-https://altai.aif.ru/incidents/mnogodetnaya-semya-chudom-spaslas-pri-krupnom-pozhare-na-altae
-TITLE:В Барнауле ликвидируют условный пожар в крупном медцентре
-TEXTHASH:пройдутпожарно-тактическиеучения.
 TITLEHASH:вбарнаулеликвидируютусловныйпожарвкрупноммедцентре
 vk_-75554521_93344
 https://vk.com/wall-75554521_93344
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/soyuz-armyan-peredal-frontu-bolshe-120-korobok-s-me
 TITLE:Скорая помощь Барнаула за неделю выполнила 5196 вызовов
 TEXTHASH:среднесуточнаянагрузканабригадусоставила12,8случая.
 TITLEHASH:скораяпомощьбарнаулазанеделювыполнила5196вызовов
+https://altai.aif.ru/society/prokuratura-dobivaetsya-kompensacii-zhilcam-avariynogo-doma-v-barnaule
+https://altai.aif.ru/society/prokuratura-dobivaetsya-kompensacii-zhilcam-avariynogo-doma-v-barnaule
+TITLE:Прокуратура добивается компенсации жильцам аварийного дома в Барнауле
+TEXTHASH:угрозаобрушениясуществуетужесейчас.
+TITLEHASH:прокуратурадобиваетсякомпенсациижильцамаварийногодомавбарнауле
