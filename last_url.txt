@@ -1,8 +1,3 @@
-TITLEHASH:вбарнаулеликвидируютусловныйпожарвкрупноммедцентре
-vk_-75554521_93344
-https://vk.com/wall-75554521_93344
-TITLE:В Новоалтайске мужчина осуждён за кражу гранитной лампады с кладбища
-Житель Новоалтайска тайно похи
 TEXTHASH:вновоалтайскемужчинаосуждёнзакражугранитнойлампадыскладбищажительновоалтайскатайнопохитилгранитнуюлампаду,принадлежавшуюпотерпевшей,сплиточногомощениямогилынагородскомкладбище.мужчинаоторвалеё,забрали
 TITLEHASH:вновоалтайскемужчинаосуждёнзакражугранитнойлампадыскладбищажительновоалтайскатайнопохи
 https://altai.aif.ru/incidents/zaderzhana-pervyy-zamministra-kultury-respubliki-altay
@@ -298,3 +293,8 @@ https://altai.aif.ru/society/prokuratura-dobivaetsya-kompensacii-zhilcam-avariyn
 TITLE:Прокуратура добивается компенсации жильцам аварийного дома в Барнауле
 TEXTHASH:угрозаобрушениясуществуетужесейчас.
 TITLEHASH:прокуратурадобиваетсякомпенсациижильцамаварийногодомавбарнауле
+https://altai.aif.ru/incidents/troih-novosibircev-budut-sudit-za-organizaciyu-narkolaboratorii-na-altae
+https://altai.aif.ru/incidents/troih-novosibircev-budut-sudit-za-organizaciyu-narkolaboratorii-na-altae
+TITLE:Троих новосибирцев будут судить за организацию нарколаборатории на Алтае
+TEXTHASH:злоумышленникивыпускалипартиинаркотиковобщимвесомнеменее160кг.
+TITLEHASH:троихновосибирцевбудутсудитьзаорганизациюнарколабораториинаалтае
