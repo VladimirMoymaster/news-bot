@@ -1,8 +1,3 @@
-https://altai.aif.ru/society/kommunalshchiki-ustranyayut-poryv-truby-na-ulice-tyaptina-v-barnaule
-https://altai.aif.ru/society/kommunalshchiki-ustranyayut-poryv-truby-na-ulice-tyaptina-v-barnaule
-TITLE:Автомобиль свалился с ограждения на детскую площадку в Барнауле
-TEXTHASH:никтонепострадал.
-TITLEHASH:автомобильсвалилсясограждениянадетскуюплощадкувбарнауле
 vk_-75554521_93349
 https://vk.com/wall-75554521_93349
 TITLE:В Бийском районе водитель Chevrolet погибла, врезавшись в стоящий большегруз
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/-tolchok-i-grohot-vzryv-gaza-v-dome-na-altae-podr
 TITLE:Взрыв газа в доме на Алтае: подробности, помощь жителям
 TEXTHASH:жительницакулундырассказалиподробностичп.
 TITLEHASH:взрывгазавдоменаалтаеподробностипомощьжителям
+https://altai.aif.ru/incidents/svyshe-30-spasateley-mchs-styanuli-k-mestu-vzryva-gaza-v-altayskom-sele
+https://altai.aif.ru/incidents/svyshe-30-spasateley-mchs-styanuli-k-mestu-vzryva-gaza-v-altayskom-sele
+TITLE:Глава СК России затребовал доклад о взрыве газа в алтайском селе
+TEXTHASH:руководительалтайскогоскдоложитвмосквуоделе.
+TITLEHASH:главаскроссиизатребовалдокладовзрывегазавалтайскомселе
