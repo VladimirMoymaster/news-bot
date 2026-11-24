@@ -1,8 +1,3 @@
-https://altai.aif.ru/incidents/v-barnaule-pered-sudom-predstanut-uchastniki-podzhoga-zh-d-oborudovaniya
-TITLE:В Барнауле перед судом предстанут участники поджога ж/д оборудования
-TEXTHASH:задержанияпрошливноябреминувшегогода.
-TITLEHASH:вбарнаулепередсудомпредстанутучастникиподжогаждоборудования
-vk_-221195646_53541
 https://vk.com/wall-221195646_53541
 TITLE:🫢 Житель Алтайского края решил, что полиция - это такси, и попал на скамью подсудимых
 Житель Поспел
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/posle-vzryva-gaza-v-dome-v-sele-kulunda-vozbudili
 TITLE:Фото с места взрыва газа в пятиэтажном доме в Алтайском крае
 TEXTHASH:24ноябрявселекулундапроизошелвзрывгазавквартирепятиэтажногодома.
 TITLEHASH:фотосместавзрывагазавпятиэтажномдомевалтайскомкрае
+https://altai.aif.ru/incidents/bolnicu-v-altayskoy-kulunde-pereveli-v-rezhim-chs-posle-vzryva-gaza
+https://altai.aif.ru/incidents/bolnicu-v-altayskoy-kulunde-pereveli-v-rezhim-chs-posle-vzryva-gaza
+TITLE:Больницу в алтайской Кулунде перевели в режим ЧС после взрыва газа
+TEXTHASH:из-зачпвжиломдомекулундинскуюцрбперевеливрежимчс.
+TITLEHASH:больницувалтайскойкулундеперевеливрежимчспослевзрывагаза
