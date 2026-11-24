@@ -1,8 +1,3 @@
-TITLE:Жительница Барнаула лишилась пальца на неофициальной работе и добилась компенсации
-Прокуратура Инду
-TEXTHASH:жительницабарнаулалишиласьпальцананеофициальнойработеидобиласькомпенсациипрокуратураиндустриальногорайонадобиласьсправедливостидляработницы,котораяполучилатяжёлуютравмунапроизводстве.женщиналишиласьср
-TITLEHASH:жительницабарнаулалишиласьпальцананеофициальнойработеидобиласькомпенсациипрокуратураинду
-https://altai.aif.ru/incidents/v-barnaule-pered-sudom-predstanut-uchastniki-podzhoga-zh-d-oborudovaniya
 https://altai.aif.ru/incidents/v-barnaule-pered-sudom-predstanut-uchastniki-podzhoga-zh-d-oborudovaniya
 TITLE:В Барнауле перед судом предстанут участники поджога ж/д оборудования
 TEXTHASH:задержанияпрошливноябреминувшегогода.
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/pod-zavalami-posle-vzryva-gaza-v-altayskoy-pyatie
 TITLE:Взрыв газа в пятиэтажном доме в селе Кулунда унес жизнь мужчины
 TEXTHASH:мужчина1974годарождениянаходилсявквартирепососедствусэпицентром.
 TITLEHASH:взрывгазавпятиэтажномдомевселекулундаунесжизньмужчины
+https://altai.aif.ru/incidents/posle-vzryva-gaza-v-dome-v-sele-kulunda-vozbudili-ugolovnoe-delo
+https://altai.aif.ru/incidents/posle-vzryva-gaza-v-dome-v-sele-kulunda-vozbudili-ugolovnoe-delo
+TITLE:Фото с места взрыва газа в пятиэтажном доме в Алтайском крае
+TEXTHASH:24ноябрявселекулундапроизошелвзрывгазавквартирепятиэтажногодома.
+TITLEHASH:фотосместавзрывагазавпятиэтажномдомевалтайскомкрае
