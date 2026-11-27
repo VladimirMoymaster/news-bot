@@ -1,8 +1,3 @@
-Как сообщает пресс-служба ГУ МЧС
-TEXTHASH:названапричинавозгораниятрамваянапроспектеленинавбарнаулекакгумчсроссиипоалтайскомукраю,пожарудалосьпотушитьнаплощадиоколодвух"квадратов".намоментприбытияпервогопожарногоподразделенияшелдымиз-подкрыши
-TITLEHASH:названапричинавозгораниятрамваянапроспектеленинавбарнаулекаксообщаетпрессслужбагумчс
-https://altai.aif.ru/society/zhitelyam-altaya-rasskazali-kak-proverit-nalogi-i-oformit-lgoty-onlayn
-https://altai.aif.ru/society/zhitelyam-altaya-rasskazali-kak-proverit-nalogi-i-oformit-lgoty-onlayn
 TITLE:Директора и главбуха «Алтайкапиталстроя» обвиняют в неуплате НДС на 25 млн
 TEXTHASH:фигурантамарестовалиимуществона34млнрублей.
 TITLEHASH:директораиглавбухаалтайкапиталстрояобвиняютвнеуплатендсна25млн
@@ -298,3 +293,8 @@ https://altai.aif.ru/incidents/delo-ob-ubiystve-propavshego-sotrudnika-mchs-zave
 TITLE:На Алтае мужчина обманом забрал жилье, а затем убил хозяина
 TEXTHASH:убийствораскрылиспустяболее20лет.
 TITLEHASH:наалтаемужчинаобманомзабралжильеазатемубилхозяина
+https://altai.aif.ru/incidents/na-altae-prigovor-za-zahvat-zalozhnika-i-strelbu-v-silovikov-ostalsya-v-sile
+https://altai.aif.ru/incidents/na-altae-prigovor-za-zahvat-zalozhnika-i-strelbu-v-silovikov-ostalsya-v-sile
+TITLE:Суд заменил условные сроки фигурантам «угольного» дела на Алтае
+TEXTHASH:алтайскийкраевойсудужесточилприговор,вынесенныйвиюне2026года.
+TITLEHASH:судзаменилусловныесрокифигурантамугольногоделанаалтае
