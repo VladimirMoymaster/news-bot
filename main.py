@@ -2,6 +2,7 @@ import os
 import time
 import time as time_module
 import requests
+import json  # Добавлен для правильной работы кнопок
 import re
 from datetime import datetime
 from groq import Groq
@@ -12,18 +13,19 @@ CHAT_ID = os.getenv("CHAT_ID")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 VK_TOKEN = os.getenv("VK_TOKEN")
 
-# TODO: ЗАМЕНИ ЭТО
 CHANNEL_URL = "https://t.me/+COpP5PRxevYwM2Y6" 
 CHANNEL_NAME = "Prognoz.Insider"
+# Твоя реферальная ссылка на БК
+REF_LINK = "https://r1wzrnh.com/?open=register&p=3ti2"
 
 # --- ИСТОЧНИКИ (ТОЛЬКО ВК) ---
 VK_GROUPS = [
-    "-51015741", # TODO: ЗАМЕНИ на ID группы INBET или другой
+    "-51015741", # ID группы INBET
 ]
 
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
-NEWS_PER_SOURCE = 15 # Для ставок лучше брать больше постов
+NEWS_PER_SOURCE = 15 
 MAX_HISTORY = 300
 
 # --- МАРКЕРЫ СТАВОК ---
@@ -35,7 +37,7 @@ BET_KEYWORDS = [
 ]
 
 SPAM_KEYWORDS = [
-    "промокод", "регистрация", "казино", "бонус", "заработок", 
+    "промокод", "регистрация", "казино", "заработок", 
     "бесплатно", "подписывайтесь", "розыгрыш", "конкурс"
 ]
 
@@ -151,21 +153,7 @@ def parse_vk(group_id, count=15):
         return []
 
 # --- ГЕНЕРАЦИЯ ПОСТА ---
-def get_emoji(text_lower):
-    if any(w in text_lower for w in ["футбол", "лига", "матч", "гол", "динамо", "байер"]):
-        return "⚽"
-    if any(w in text_lower for w in ["хоккей", "шайба", "кхл", "нхл"]):
-        return "🏒"
-    if any(w in text_lower for w in ["баскетбол", "нба", "очко"]):
-        return "🏀"
-    if any(w in text_lower for w in ["теннис", "сет", "ракетка"]):
-        return "🎾"
-    if any(w in text_lower for w in ["бокс", "мма", "ufc", "раунд", "боец"]):
-        return "🥊"
-    return "🎯"
-
 def rewrite_text(title, summary):
-    # Обрезаем текст, чтобы не перегружать ИИ (оставляем первые 1500 символов)
     text_for_ai = summary[:1500]
     
     prompt = f"""
@@ -178,7 +166,7 @@ def rewrite_text(title, summary):
 - Вытащи саму ставку (исход, тотал, фора и т.д.).
 - Вытащи коэффициент (Кф). Если его нет в тексте, не выдумывай.
 - Выкинь весь длинный анализ! Оставь максимум 1-2 предложения с кратким обоснованием (например, из блока "Вывод").
-- НЕ используй Markdown (**, *, __). Разрешён только HTML тег <b> для заголовков.
+- НЕ используй Markdown (**, *, __). Разрешён только HTML тег <b> и <i>.
 - НЕ упоминай источник, ВК, и не добавляй ссылки на ВК.
 - Пиши в сдержанном, уверенном стиле. Без воды.
 
@@ -204,7 +192,6 @@ def rewrite_text(title, summary):
         )
         result = completion.choices[0].message.content.strip()
         
-        # Очистка от мусора
         result = re.sub(r'<(?!b>|/b>|i>|/i>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)(?<!<i)(?<!</i)>', '', result)
         result = re.sub(r'https?://\S+', '', result)
@@ -213,8 +200,7 @@ def rewrite_text(title, summary):
         return result
     except Exception as e:
         print(f"Ошибка ИИ: {e}. Используем оригинал.")
-        emoji = get_emoji((title + " " + summary).lower())
-        return f"<b>{emoji} {title}</b>\n\n{summary[:800]}"
+        return f"<b>🎯 {title}</b>\n\n{summary[:800]}"
 
 def smart_cut(text, limit):
     if len(text) <= limit:
@@ -226,18 +212,22 @@ def smart_cut(text, limit):
     return cut
 
 def send_to_telegram(text, image_url=None, source_url=None):
-    # Подпись и кнопка
     signature = f'\n\n📌 <a href="{CHANNEL_URL}"><b>{CHANNEL_NAME}</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Формируем кнопки
+    # Создаем красивые кнопки
     keyboard = {
         "inline_keyboard": [
-            [{"text": "📊 Все прогнозы", "url": CHANNEL_URL}]
+            [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}], # Главная кнопка на всю ширину
+            [
+                {"text": "📊 Все прогнозы", "url": CHANNEL_URL},
+                {"text": "🔗 Источник", "url": source_url if source_url else "https://vk.com"}
+            ]
         ]
     }
-    if source_url:
-         keyboard["inline_keyboard"][0].append({"text": "🔗 Источник", "url": source_url})
+    
+    # ВАЖНО: Telegram требует передавать reply_markup как валидную JSON-строку
+    reply_markup_json = json.dumps(keyboard)
 
     if image_url and len(text) + len(signature) <= 1024:
         try:
@@ -247,16 +237,19 @@ def send_to_telegram(text, image_url=None, source_url=None):
                 'chat_id': CHAT_ID, 
                 'caption': text + signature, 
                 'parse_mode': 'HTML',
-                'reply_markup': str(keyboard).replace("'", '"') # Telegram ждёт JSON
+                'reply_markup': reply_markup_json
             }
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото с caption):", r.status_code)
             if r.status_code == 200:
                 return
+            else:
+                print(r.text) # Для отладки, если ТГ ругается
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
+    # Если текст длинный, отправляем фото отдельно, а текст с кнопками отдельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -265,7 +258,7 @@ def send_to_telegram(text, image_url=None, source_url=None):
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото):", r.status_code)
-            time.sleep(20)
+            time.sleep(15) 
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
@@ -274,11 +267,13 @@ def send_to_telegram(text, image_url=None, source_url=None):
         'chat_id': CHAT_ID, 
         'text': final_text, 
         'parse_mode': 'HTML',
-        'reply_markup': str(keyboard).replace("'", '"')
+        'reply_markup': reply_markup_json
     }
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     r = requests.post(url, data=data, timeout=15)
     print("Telegram ответ (текст):", r.status_code)
+    if r.status_code != 200:
+        print(r.text)
 
 def main():
     if os.path.exists(LOCK_FILE):
@@ -310,7 +305,6 @@ def main():
             url = news['url']
             guid = news['guid']
             text_hash = news['text_hash']
-            title_hash = news['title_hash']
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
@@ -346,7 +340,6 @@ def main():
         print(f"Размер поста: {len(post_text)} символов")
         
         try:
-            # Передаём ссылку на пост ВК для кнопки
             send_to_telegram(post_text, image_url, source_url=found_news['url'])
             print("Пост отправлен!")
         except Exception as e:
