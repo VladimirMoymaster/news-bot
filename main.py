@@ -2,20 +2,19 @@ import os
 import time
 import time as time_module
 import requests
-import json  # Добавлен для правильной работы кнопок
+import json
 import re
 from datetime import datetime
 from groq import Groq
 
 # --- НАСТРОЙКИ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+CHAT_ID = os.getenv("CHAT_ID", "-1005656106786") 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 VK_TOKEN = os.getenv("VK_TOKEN")
 
 CHANNEL_URL = "https://t.me/+COpP5PRxevYwM2Y6" 
 CHANNEL_NAME = "Prognoz.Insider"
-# Твоя реферальная ссылка на БК
 REF_LINK = "https://r1wzrnh.com/?open=register&p=3ti2"
 
 # --- ИСТОЧНИКИ (ТОЛЬКО ВК) ---
@@ -28,17 +27,32 @@ LOCK_FILE = "bot.lock"
 NEWS_PER_SOURCE = 15 
 MAX_HISTORY = 300
 
-# --- МАРКЕРЫ СТАВОК ---
-BET_KEYWORDS = [
-    "ставка", "ординар", "экспресс", "кф", "коэф", "коэффициент", 
-    "тотал", "фора", "исход", "победа", "прогноз", "прогнозы",
-    "оба забьют", "ничья", "больше", "меньше", "1х", "2х", "12", 
-    "инбет", "inbet", "п1", "п2", "х", "тм", "тб"
+# --- НОВЫЕ ПРАВИЛА ФИЛЬТРАЦИИ ---
+
+# 1. Стоп-слова: если хотя бы одно есть в тексте — пост пропускаем
+STOP_WORDS = [
+    "стоимость: 2000 за оба", 
+    "послеоплату", 
+    "ночи", 
+    "экспресс" # Так как мы ищем только ординары
 ]
 
-SPAM_KEYWORDS = [
-    "промокод", "регистрация", "казино", "заработок", 
-    "бесплатно", "подписывайтесь", "розыгрыш", "конкурс"
+# 2. Обязательное слово (если его нет — пост пропускаем)
+REQUIRED_WORD = "ординар"
+
+# 3. Слова для замены (что меняем на что)
+REPLACEMENTS = {
+    "INBET": "Insider",
+    "инбет": "Insider",
+    "Inbet": "Insider"
+}
+
+# --- ОСТАЛЬНЫЕ МАРКЕРЫ ---
+BET_KEYWORDS = [
+    "ставка", "ординар", "кф", "коэф", "коэффициент", 
+    "тотал", "фора", "исход", "победа", "прогноз", "прогнозы",
+    "оба забьют", "ничья", "больше", "меньше", "1х", "2х", "12", 
+    "п1", "п2", "х", "тм", "тб"
 ]
 
 client = Groq(api_key=GROQ_API_KEY)
@@ -55,18 +69,20 @@ def clean_html_entities(text):
     text = re.sub(r'[ \t]+', ' ', text).strip()
     return text
 
-def is_bet_post(title, summary):
+def is_valid_post(title, summary):
     text = (title + " " + summary).lower()
     
-    # Проверка на спам
-    for spam in SPAM_KEYWORDS:
-        if spam in text:
+    # 1. Проверка на стоп-слова
+    for stop_word in STOP_WORDS:
+        if stop_word.lower() in text:
             return False
             
-    # Проверка на наличие маркеров ставок
+    # 2. Проверка на обязательное слово (только ординары)
+    if REQUIRED_WORD.lower() not in text:
+        return False
+            
+    # 3. Проверка на наличие маркеров ставок
     has_bet = any(keyword in text for keyword in BET_KEYWORDS)
-    
-    # Дополнительная проверка: если есть слово "ставка" и есть цифры (кф)
     if "ставка" in text and re.search(r'\d+[.,]\d+', text):
         return True
         
@@ -155,7 +171,6 @@ def parse_vk(group_id, count=15):
 # --- ГЕНЕРАЦИЯ ПОСТА ---
 def rewrite_text(title, summary):
     text_for_ai = summary[:1500]
-    
     prompt = f"""
 Ты — профессиональный редактор Telegram-канала о спортивных ставках «{CHANNEL_NAME}».
 Твоя задача — взять сырой пост из ВК и сделать из него КОРОТКИЙ, цепляющий пост для Telegram.
@@ -169,6 +184,7 @@ def rewrite_text(title, summary):
 - НЕ используй Markdown (**, *, __). Разрешён только HTML тег <b> и <i>.
 - НЕ упоминай источник, ВК, и не добавляй ссылки на ВК.
 - Пиши в сдержанном, уверенном стиле. Без воды.
+- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать фразы вроде "В предоставленном тексте нет информации...", "Я не могу...", "Недостаточно данных". Если данных мало — просто красиво оформи то, что есть.
 
 ПРИМЕР ИДЕАЛЬНОГО ПОСТА:
 <b>⚽ Футбол | Лига Европы</b>
@@ -191,16 +207,27 @@ def rewrite_text(title, summary):
             max_tokens=1000
         )
         result = completion.choices[0].message.content.strip()
-        
         result = re.sub(r'<(?!b>|/b>|i>|/i>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)(?<!<i)(?<!</i)>', '', result)
         result = re.sub(r'https?://\S+', '', result)
         result = re.sub(r'[ \t]+', ' ', result).strip()
         
+        # Проверка на отказ ИИ
+        refuse_markers = ["в предоставленном тексте", "невозможно", "не могу", "недостаточно данных", "нет информации", "к сожалению"]
+        if any(marker in result.lower() for marker in refuse_markers):
+            raise ValueError("ИИ отказался обрабатывать")
+            
         return result
     except Exception as e:
-        print(f"Ошибка ИИ: {e}. Используем оригинал.")
-        return f"<b>🎯 {title}</b>\n\n{summary[:800]}"
+        print(f"Ошибка ИИ или отказ: {e}. Используем оригинал.")
+        clean_summary = summary.replace('\n', ' ').strip()
+        return f"<b>🎯 Новый прогноз</b>\n\n{clean_summary[:800]}"
+
+def apply_replacements(text):
+    """Заменяет INBET на Insider в готовом тексте"""
+    for old, new in REPLACEMENTS.items():
+        text = re.sub(old, new, text, flags=re.IGNORECASE)
+    return text
 
 def smart_cut(text, limit):
     if len(text) <= limit:
@@ -215,15 +242,14 @@ def send_to_telegram(text, image_url=None, source_url=None):
     signature = f'\n\n📌 <a href="{CHANNEL_URL}"><b>{CHANNEL_NAME}</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
     
-       # Формируем только ОДНУ кнопку
+    # Только одна кнопка
     keyboard = {
         "inline_keyboard": [
             [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}]
         ]
     }
-    
     reply_markup_json = json.dumps(keyboard)
-    
+
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -238,13 +264,10 @@ def send_to_telegram(text, image_url=None, source_url=None):
             r = requests.post(url, files=files, data=data, timeout=30)
             print("Telegram ответ (фото с caption):", r.status_code)
             if r.status_code == 200:
-                return
-            else:
-                print(r.text) # Для отладки, если ТГ ругается
+                return True
         except Exception as e:
             print(f"Ошибка фото: {e}")
     
-    # Если текст длинный, отправляем фото отдельно, а текст с кнопками отдельно
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
@@ -267,8 +290,12 @@ def send_to_telegram(text, image_url=None, source_url=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     r = requests.post(url, data=data, timeout=15)
     print("Telegram ответ (текст):", r.status_code)
-    if r.status_code != 200:
-        print(r.text)
+    
+    if r.status_code == 200:
+        return True
+    else:
+        print("ОШИБКА ТЕЛЕГРАМ:", r.text)
+        return False
 
 def main():
     if os.path.exists(LOCK_FILE):
@@ -283,7 +310,6 @@ def main():
         print(f"В памяти {len(published_keys)} ключей.")
         
         all_news = []
-        
         for vk_group in VK_GROUPS:
             print(f"Загружаем ВК {vk_group}...")
             news = parse_vk(vk_group, count=NEWS_PER_SOURCE)
@@ -303,20 +329,13 @@ def main():
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
-            if guid in published_keys:
-                print(f"[{pub_date}] ⛔ GUID: {title[:50]}...")
+            if guid in published_keys or url in published_keys or text_hash in published_keys:
+                print(f"[{pub_date}] ⛔ Дубль: {title[:50]}...")
                 continue
             
-            if url in published_keys:
-                print(f"[{pub_date}] ⛔ URL: {title[:50]}...")
-                continue
-            
-            if text_hash in published_keys:
-                print(f"[{pub_date}] ⛔ TEXTHASH: {title[:50]}...")
-                continue
-            
-            if not is_bet_post(title, summary):
-                print(f"[{pub_date}] Пропускаем (не ставка): {title[:50]}...")
+            # Здесь применяются новые правила (стоп-слова, ординар)
+            if not is_valid_post(title, summary):
+                print(f"[{pub_date}] Пропускаем (не подходит под правила): {title[:50]}...")
                 continue
             
             found_news = news
@@ -329,22 +348,26 @@ def main():
         print(f"✅ Найдена ставка: {found_news['title']}")
         
         image_url = found_news.get('image')
-        print(f"Картинка: {image_url or 'НЕТ'}")
-        
         post_text = rewrite_text(found_news['title'], found_news['summary'])
-        print(f"Размер поста: {len(post_text)} символов")
+        
+        # Применяем замену INBET -> Insider
+        post_text = apply_replacements(post_text)
         
         try:
-            send_to_telegram(post_text, image_url, source_url=found_news['url'])
-            print("Пост отправлен!")
+            success = send_to_telegram(post_text, image_url, source_url=found_news['url'])
+            
+            if success:
+                print("Пост УСПЕШНО отправлен!")
+                published_keys.append(found_news['guid'])
+                published_keys.append(found_news['url'])
+                published_keys.append(found_news['text_hash'])
+                save_published_keys(published_keys)
+                print(f"Сохранено. Всего ключей: {len(published_keys)}")
+            else:
+                print("❌ Пост НЕ отправлен. Проверь права бота в канале и CHAT_ID.")
+                
         except Exception as e:
             print(f"ОШИБКА отправки: {e}")
-        finally:
-            published_keys.append(found_news['guid'])
-            published_keys.append(found_news['url'])
-            published_keys.append(found_news['text_hash'])
-            save_published_keys(published_keys)
-            print(f"Сохранено. Всего ключей: {len(published_keys)}")
     
     finally:
         if os.path.exists(LOCK_FILE):
