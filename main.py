@@ -4,7 +4,8 @@ import time as time_module
 import requests
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz # Для работы с часовыми поясами
 from groq import Groq
 
 # --- НАСТРОЙКИ ---
@@ -24,31 +25,14 @@ VK_GROUPS = [
 
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
-# Берем только 5 самых последних постов, чтобы не тратить лимиты и не постить старье
 NEWS_PER_SOURCE = 5 
 MAX_HISTORY = 300
 
 # --- НОВЫЕ ПРАВИЛА ФИЛЬТРАЦИИ ---
-
-# 1. Стоп-слова: если хотя бы одно есть в тексте — пост пропускаем
-STOP_WORDS = [
-    "стоимость: 2000 за оба", 
-    "послеоплату", 
-    "ночи", 
-    "экспресс" 
-]
-
-# 2. Обязательное слово (если его нет — пост пропускаем)
+STOP_WORDS = ["стоимость: 2000 за оба", "послеоплату", "ночи", "экспресс"]
 REQUIRED_WORD = "ординар"
+REPLACEMENTS = {"INBET": "Insider", "инбет": "Insider", "Inbet": "Insider"}
 
-# 3. Слова для замены
-REPLACEMENTS = {
-    "INBET": "Insider",
-    "инбет": "Insider",
-    "Inbet": "Insider"
-}
-
-# --- ОСТАЛЬНЫЕ МАРКЕРЫ ---
 BET_KEYWORDS = [
     "ставка", "ординар", "кф", "коэф", "коэффициент", 
     "тотал", "фора", "исход", "победа", "прогноз", "прогнозы",
@@ -59,12 +43,7 @@ BET_KEYWORDS = [
 client = Groq(api_key=GROQ_API_KEY)
 
 def clean_html_entities(text):
-    replacements = {
-        '&laquo;': '«', '&raquo;': '»', '&amp;': '&', 
-        '&quot;': '"', '&apos;': "'", '&nbsp;': ' ',
-        '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
-        '&lt;': '', '&gt;': ''
-    }
+    replacements = {'&laquo;': '«', '&raquo;': '»', '&amp;': '&', '&quot;': '"', '&apos;': "'", '&nbsp;': ' ', '&mdash;': '—', '&ndash;': '–', '&hellip;': '…'}
     for old, new in replacements.items():
         text = text.replace(old, new)
     text = re.sub(r'[ \t]+', ' ', text).strip()
@@ -73,23 +52,19 @@ def clean_html_entities(text):
 def is_valid_post(title, summary):
     text = (title + " " + summary).lower()
     
-    # 1. Проверка на стоп-слова
     for stop_word in STOP_WORDS:
         if stop_word.lower() in text:
             return False
             
-    # 2. Проверка на обязательное слово (только ординары)
     if REQUIRED_WORD.lower() not in text:
         return False
             
-    # 3. Проверка на наличие маркеров ставок
     has_bet = any(keyword in text for keyword in BET_KEYWORDS)
     if "ставка" in text and re.search(r'\d+[.,]\d+', text):
         return True
         
     return has_bet
 
-# --- ЖЁСТКАЯ ЗАЩИТА ОТ ДУБЛЕЙ ---
 def get_text_hash(text):
     clean = re.sub(r'\s+', '', text.lower())[:200]
     return f"TEXTHASH:{clean}"
@@ -109,63 +84,38 @@ def save_published_keys(keys):
     with open(STATE_FILE, "w") as f:
         f.write("\n".join(keys))
 
-# --- ПАРСИНГ ВК ---
 def parse_vk(group_id, count=5):
-    if not VK_TOKEN:
-        print("VK_TOKEN не задан")
-        return []
-    
+    if not VK_TOKEN: return []
     url = "https://api.vk.com/method/wall.get"
-    params = {
-        "owner_id": group_id,
-        "count": count,
-        "access_token": VK_TOKEN,
-        "v": "5.199"
-    }
+    params = {"owner_id": group_id, "count": count, "access_token": VK_TOKEN, "v": "5.199"}
     
     try:
         response = requests.get(url, params=params, timeout=20)
         data = response.json()
-        
-        if "error" in data:
-            print(f"Ошибка ВК {group_id}: {data['error'].get('error_msg', 'unknown')}")
-            return []
+        if "error" in data: return []
         
         news = []
-        items = data.get("response", {}).get("items", [])
-        for post in items:
-            if post.get("marked_as_ads"):
-                continue
+        for post in data.get("response", {}).get("items", []):
+            if post.get("marked_as_ads"): continue
             
-            # Если текста нет вообще (только картинка), создаем заглушку
             text = post.get("text", "").strip()
-            if not text:
-                text = "Прогноз на спорт (подробности на картинке)"
+            if not text: text = "Прогноз на спорт (подробности на картинке)"
             
             title = text[:100].strip().replace("\n", " ")
-            if not title:
-                continue
-            
             image_url = None
             if "attachments" in post:
                 for attach in post["attachments"]:
                     if attach["type"] == "photo":
                         sizes = attach["photo"].get("sizes", [])
-                        if sizes:
-                            image_url = max(sizes, key=lambda x: x["width"])["url"]
-                            break
-            
-            summary_text = clean_html_entities(text)
+                        if sizes: image_url = max(sizes, key=lambda x: x["width"])["url"]; break
             
             news.append({
                 'title': title,
-                'summary': summary_text,
-                'text_hash': get_text_hash(summary_text),
-                'title_hash': get_title_hash(title),
+                'summary': clean_html_entities(text),
+                'text_hash': get_text_hash(text),
                 'url': f"https://vk.com/wall{group_id}_{post['id']}",
                 'guid': f"vk_{group_id}_{post['id']}",
                 'image': image_url,
-                'source': f'vk_{group_id}',
                 'timestamp': post.get('date', 0)
             })
         return news
@@ -173,37 +123,70 @@ def parse_vk(group_id, count=5):
         print(f"Ошибка ВК {group_id}: {e}")
         return []
 
-# --- ГЕНЕРАЦИЯ ПОСТА ---
-def rewrite_text(title, summary):
+# --- ФУНКЦИЯ ИИ: ВЫТАСКИВАЕМ ВРЕМЯ И ГЕНЕРИРУЕМ ТЕКСТ ---
+def process_with_ai(title, summary, post_date_timestamp):
+    # 1. Сначала просим ИИ вытащить время матча
+    # Передаем дату поста, чтобы ИИ понимал, какое это число (если написано "Сегодня")
+    post_date_str = datetime.fromtimestamp(post_date_timestamp).strftime('%d.%m.%Y')
+    
+    time_prompt = f"""
+    Прочитай текст прогноза на спорт. Твоя задача — найти дату и время начала матча.
+    Дата публикации этого поста: {post_date_str}.
+    Если в тексте написано "Сегодня в 20:45", значит время матча: {post_date_str} 20:45.
+    Выведи ТОЛЬКО дату и время в формате: YYYY-MM-DD HH:MM (например: 2023-11-26 20:45).
+    Если времени в тексте нет, выведи: UNKNOWN.
+
+    Текст:
+    {summary[:1000]}
+    """
+    
+    match_time_str = "UNKNOWN"
+    try:
+        time_completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=[{"role": "user", "content": time_prompt}],
+            temperature=0.0,
+            max_tokens=20
+        )
+        match_time_str = time_completion.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Ошибка при получении времени матча: {e}")
+
+    # 2. Если время есть, проверяем, не прошло ли оно
+    if match_time_str != "UNKNOWN" and re.match(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}', match_time_str):
+        try:
+            moscow_tz = pytz.timezone('Europe/Moscow')
+            now_msk = datetime.now(moscow_tz)
+            
+            # Парсим время матча
+            match_time = datetime.strptime(match_time_str, '%Y-%m-%d %H:%M')
+            match_time_msk = moscow_tz.localize(match_time)
+            
+            # Условие: если до матча осталось меньше 1 часа (или он уже начался)
+            time_diff = match_time_msk - now_msk
+            if time_diff < timedelta(hours=1):
+                print(f"⏳ Матч начнется в {match_time_str} МСК (меньше чем через час). Пропускаем.")
+                return None, None # Возвращаем None, чтобы бот пропустил пост
+                
+            print(f"⏰ До матча {match_time_str} МСК еще есть время. Берем в работу.")
+        except Exception as e:
+            print(f"Ошибка парсинга даты ({match_time_str}): {e}")
+            
+    # 3. Если время ок, генерируем сам пост
     text_for_ai = summary[:1500]
     prompt = f"""
 Ты — профессиональный редактор Telegram-канала о спортивных ставках «{CHANNEL_NAME}».
-Твоя задача — взять сырой пост из ВК и сделать из него КОРОТКИЙ, цепляющий пост для Telegram.
+Сделай из сырого поста КОРОТКИЙ пост для Telegram.
+Если в тексте есть слова «Выигрыш», «Зашла», «Рассчитана», «Прошла» — начни с ✅ или 💰.
+В остальных случаях используй 🎯.
 
-ОСОБОЕ ВНИМАНИЕ:
-- Если в тексте есть слова «Выигрыш», «Зашла», «Рассчитана», «Прошла» — это пост о том, что ставка СЫГРАЛА.
-- В таком случае, начни пост с эмодзи ✅ или 💰 и напиши, что ставка зашла.
-- Иначе, используй эмодзи 🎯.
-
-ЖЁСТКИЕ ПРАВИЛА:
-- В самом начале обязательно укажи вид спорта (например: ⚽ Футбол).
-- Вытащи: Турнир, Дату/Время, Команды (или игроков).
-- Вытащи саму ставку (исход, тотал, фора и т.д.).
-- Вытащи коэффициент (Кф). Если его нет в тексте, не выдумывай.
-- Выкинь весь длинный анализ! Оставь максимум 1-2 предложения с кратким обоснованием.
-- НЕ используй Markdown (**, *, __). Разрешён только HTML тег <b> и <i>.
-- НЕ упоминай источник, ВК, и не добавляй ссылки на ВК.
-- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать фразы вроде "В предоставленном тексте нет информации...", "Я не могу...", "Недостаточно данных". Если текста мало, просто красиво оформи то, что есть.
-
-ПРИМЕР ИДЕАЛЬНОГО ПОСТА (ВЫИГРЫШ):
-<b>✅ Футбол | Лига Европы (Выигрыш)</b>
-🗓 27 ноября, 18:00
-
-<b>Динамо Загреб — Байер</b>
-🎯 Ставка: Обе команды забьют — Да
-📈 Коэф: 1.52
-
-💡 <i>Ставка успешно зашла! Второй ординар уже принёс прибыль, ожидаем аналогичный результат.</i>
+ПРАВИЛА:
+- Укажи вид спорта (⚽ Футбол).
+- Вытащи: Турнир, Дату/Время, Команды.
+- Вытащи ставку и коэффициент.
+- Убери длинный анализ, оставь 1-2 предложения сути.
+- Используй только HTML теги <b> и <i>.
+- НЕ пиши фразы "В предоставленном тексте нет...". Если мало данных, просто оформи то, что есть.
 
 Текст из ВК:
 {text_for_ai}
@@ -221,16 +204,14 @@ def rewrite_text(title, summary):
         result = re.sub(r'https?://\S+', '', result)
         result = re.sub(r'[ \t]+', ' ', result).strip()
         
-        # Проверка на отказ ИИ
         refuse_markers = ["в предоставленном тексте", "невозможно", "не могу", "недостаточно данных", "нет информации", "к сожалению"]
         if any(marker in result.lower() for marker in refuse_markers):
-            raise ValueError("ИИ отказался обрабатывать")
+            raise ValueError("ИИ отказался")
             
-        return result
+        return result, match_time_str
     except Exception as e:
-        print(f"Ошибка ИИ или отказ: {e}. Используем оригинал.")
-        clean_summary = summary.replace('\n', ' ').strip()
-        return f"<b>🎯 Новый прогноз</b>\n\n{clean_summary[:800]}"
+        print(f"Ошибка ИИ: {e}. Оригинал.")
+        return f"<b>🎯 Новый прогноз</b>\n\n{summary[:800]}", match_time_str
 
 def apply_replacements(text):
     for old, new in REPLACEMENTS.items():
@@ -238,148 +219,90 @@ def apply_replacements(text):
     return text
 
 def smart_cut(text, limit):
-    if len(text) <= limit:
-        return text
+    if len(text) <= limit: return text
     cut = text[:limit]
     last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
-    if last_dot > limit * 0.5:
-        return cut[:last_dot + 1]
+    if last_dot > limit * 0.5: return cut[:last_dot + 1]
     return cut
 
 def send_to_telegram(text, image_url=None, source_url=None):
     signature = f'\n\n📌 <a href="{CHANNEL_URL}"><b>{CHANNEL_NAME}</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
-    
-    keyboard = {
-        "inline_keyboard": [
-            [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}]
-        ]
-    }
+    keyboard = {"inline_keyboard": [[{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}]]}
     reply_markup_json = json.dumps(keyboard)
 
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
-            data = {
-                'chat_id': CHAT_ID, 
-                'caption': text + signature, 
-                'parse_mode': 'HTML',
-                'reply_markup': reply_markup_json
-            }
-            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-            r = requests.post(url, files=files, data=data, timeout=30)
-            print("Telegram ответ (фото с caption):", r.status_code)
-            if r.status_code == 200:
-                return True
-        except Exception as e:
-            print(f"Ошибка фото: {e}")
+            data = {'chat_id': CHAT_ID, 'caption': text + signature, 'parse_mode': 'HTML', 'reply_markup': reply_markup_json}
+            r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", files=files, data=data, timeout=30)
+            if r.status_code == 200: return True
+        except Exception as e: print(f"Ошибка фото: {e}")
     
     if image_url:
         try:
             img_data = requests.get(image_url, timeout=15).content
             files = {'photo': ('image.jpg', img_data)}
             data = {'chat_id': CHAT_ID}
-            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-            r = requests.post(url, files=files, data=data, timeout=30)
-            print("Telegram ответ (фото):", r.status_code)
+            r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto", files=files, data=data, timeout=30)
             time.sleep(15) 
-        except Exception as e:
-            print(f"Ошибка фото: {e}")
+        except Exception as e: print(f"Ошибка фото: {e}")
     
     final_text = smart_cut(text, MAX_MSG) + signature
-    data = {
-        'chat_id': CHAT_ID, 
-        'text': final_text, 
-        'parse_mode': 'HTML',
-        'reply_markup': reply_markup_json
-    }
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    r = requests.post(url, data=data, timeout=15)
-    print("Telegram ответ (текст):", r.status_code)
-    
-    if r.status_code == 200:
-        return True
-    else:
-        print("ОШИБКА ТЕЛЕГРАМ:", r.text)
-        return False
+    data = {'chat_id': CHAT_ID, 'text': final_text, 'parse_mode': 'HTML', 'reply_markup': reply_markup_json}
+    r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", data=data, timeout=15)
+    return r.status_code == 200
 
 def main():
-    if os.path.exists(LOCK_FILE):
-        print("Обнаружен параллельный запуск. Пропускаем.")
-        return
-    
-    with open(LOCK_FILE, "w") as f:
-        f.write("locked")
+    if os.path.exists(LOCK_FILE): return
+    with open(LOCK_FILE, "w") as f: f.write("locked")
     
     try:
         published_keys = load_published_keys()
-        print(f"В памяти {len(published_keys)} ключей.")
-        
         all_news = []
+        
         for vk_group in VK_GROUPS:
-            print(f"Загружаем ВК {vk_group}...")
-            # Берем только 5 постов
-            news = parse_vk(vk_group, count=NEWS_PER_SOURCE)
-            print(f"  → {len(news)} постов")
-            all_news.extend(news)
+            all_news.extend(parse_vk(vk_group, count=NEWS_PER_SOURCE))
         
         all_news.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
-        print(f"Всего постов: {len(all_news)}")
-        
         found_news = None
+        
+        # Перебираем посты от новых к старым
         for news in all_news:
-            title = news['title']
-            summary = news['summary']
-            url = news['url']
-            guid = news['guid']
-            text_hash = news['text_hash']
-            
-            pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
-            
-            # Если пост уже был в истории - пропускаем
-            if guid in published_keys or url in published_keys or text_hash in published_keys:
-                print(f"[{pub_date}] ⛔ Дубль: {title[:50]}...")
+            if news['guid'] in published_keys or news['url'] in published_keys or news['text_hash'] in published_keys:
                 continue
-            
-            # Проверка на стоп-слова, ординар и маркеры
-            if not is_valid_post(title, summary):
-                print(f"[{pub_date}] Пропускаем (не подходит): {title[:50]}...")
+            if not is_valid_post(news['title'], news['summary']):
                 continue
+                
+            # Если пост подошел по фильтрам, проверяем время через ИИ
+            print(f"Проверяем время для поста: {news['title'][:40]}...")
+            post_text, match_time = process_with_ai(news['title'], news['summary'], news['timestamp'])
             
+            if post_text is None:
+                # Если матч уже начался или начнется меньше чем через час, идем к следующему
+                continue
+                
             found_news = news
             break
         
         if not found_news:
-            print("Подходящих постов не найдено.")
+            print("Подходящих постов (с подходящим временем) не найдено.")
             return
-        
-        print(f"✅ Найдена ставка: {found_news['title']}")
-        
-        image_url = found_news.get('image')
-        post_text = rewrite_text(found_news['title'], found_news['summary'])
         
         post_text = apply_replacements(post_text)
         
-        try:
-            success = send_to_telegram(post_text, image_url, source_url=found_news['url'])
+        success = send_to_telegram(post_text, found_news.get('image'), source_url=found_news['url'])
+        
+        if success:
+            print("Пост УСПЕШНО отправлен!")
+            published_keys.extend([found_news['guid'], found_news['url'], found_news['text_hash']])
+            save_published_keys(published_keys)
+        else:
+            print("❌ Пост НЕ отправлен.")
             
-            if success:
-                print("Пост УСПЕШНО отправлен!")
-                published_keys.append(found_news['guid'])
-                published_keys.append(found_news['url'])
-                published_keys.append(found_news['text_hash'])
-                save_published_keys(published_keys)
-                print(f"Сохранено. Всего ключей: {len(published_keys)}")
-            else:
-                print("❌ Пост НЕ отправлен. Проверь права бота в канале и CHAT_ID.")
-                
-        except Exception as e:
-            print(f"ОШИБКА отправки: {e}")
-    
     finally:
-        if os.path.exists(LOCK_FILE):
-            os.remove(LOCK_FILE)
+        if os.path.exists(LOCK_FILE): os.remove(LOCK_FILE)
 
 if __name__ == "__main__":
     main()
