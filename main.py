@@ -24,7 +24,8 @@ VK_GROUPS = [
 
 STATE_FILE = "last_url.txt"
 LOCK_FILE = "bot.lock"
-NEWS_PER_SOURCE = 15 
+# Берем только 5 самых последних постов, чтобы не тратить лимиты и не постить старье
+NEWS_PER_SOURCE = 5 
 MAX_HISTORY = 300
 
 # --- НОВЫЕ ПРАВИЛА ФИЛЬТРАЦИИ ---
@@ -34,13 +35,13 @@ STOP_WORDS = [
     "стоимость: 2000 за оба", 
     "послеоплату", 
     "ночи", 
-    "экспресс" # Так как мы ищем только ординары
+    "экспресс" 
 ]
 
 # 2. Обязательное слово (если его нет — пост пропускаем)
 REQUIRED_WORD = "ординар"
 
-# 3. Слова для замены (что меняем на что)
+# 3. Слова для замены
 REPLACEMENTS = {
     "INBET": "Insider",
     "инбет": "Insider",
@@ -109,7 +110,7 @@ def save_published_keys(keys):
         f.write("\n".join(keys))
 
 # --- ПАРСИНГ ВК ---
-def parse_vk(group_id, count=15):
+def parse_vk(group_id, count=5):
     if not VK_TOKEN:
         print("VK_TOKEN не задан")
         return []
@@ -133,10 +134,14 @@ def parse_vk(group_id, count=15):
         news = []
         items = data.get("response", {}).get("items", [])
         for post in items:
-            if post.get("marked_as_ads") or not post.get("text"):
+            if post.get("marked_as_ads"):
                 continue
             
-            text = post["text"]
+            # Если текста нет вообще (только картинка), создаем заглушку
+            text = post.get("text", "").strip()
+            if not text:
+                text = "Прогноз на спорт (подробности на картинке)"
+            
             title = text[:100].strip().replace("\n", " ")
             if not title:
                 continue
@@ -175,26 +180,30 @@ def rewrite_text(title, summary):
 Ты — профессиональный редактор Telegram-канала о спортивных ставках «{CHANNEL_NAME}».
 Твоя задача — взять сырой пост из ВК и сделать из него КОРОТКИЙ, цепляющий пост для Telegram.
 
+ОСОБОЕ ВНИМАНИЕ:
+- Если в тексте есть слова «Выигрыш», «Зашла», «Рассчитана», «Прошла» — это пост о том, что ставка СЫГРАЛА.
+- В таком случае, начни пост с эмодзи ✅ или 💰 и напиши, что ставка зашла.
+- Иначе, используй эмодзи 🎯.
+
 ЖЁСТКИЕ ПРАВИЛА:
 - В самом начале обязательно укажи вид спорта (например: ⚽ Футбол).
 - Вытащи: Турнир, Дату/Время, Команды (или игроков).
 - Вытащи саму ставку (исход, тотал, фора и т.д.).
 - Вытащи коэффициент (Кф). Если его нет в тексте, не выдумывай.
-- Выкинь весь длинный анализ! Оставь максимум 1-2 предложения с кратким обоснованием (например, из блока "Вывод").
+- Выкинь весь длинный анализ! Оставь максимум 1-2 предложения с кратким обоснованием.
 - НЕ используй Markdown (**, *, __). Разрешён только HTML тег <b> и <i>.
 - НЕ упоминай источник, ВК, и не добавляй ссылки на ВК.
-- Пиши в сдержанном, уверенном стиле. Без воды.
-- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать фразы вроде "В предоставленном тексте нет информации...", "Я не могу...", "Недостаточно данных". Если данных мало — просто красиво оформи то, что есть.
+- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО писать фразы вроде "В предоставленном тексте нет информации...", "Я не могу...", "Недостаточно данных". Если текста мало, просто красиво оформи то, что есть.
 
-ПРИМЕР ИДЕАЛЬНОГО ПОСТА:
-<b>⚽ Футбол | Лига Европы</b>
-🗓 26 ноября, 20:45
+ПРИМЕР ИДЕАЛЬНОГО ПОСТА (ВЫИГРЫШ):
+<b>✅ Футбол | Лига Европы (Выигрыш)</b>
+🗓 27 ноября, 18:00
 
 <b>Динамо Загреб — Байер</b>
 🎯 Ставка: Обе команды забьют — Да
 📈 Коэф: 1.52
 
-💡 <i>Хорошая форма атаки Динамо и результативные последние матчи Байера дают основания ждать голов с обеих сторон.</i>
+💡 <i>Ставка успешно зашла! Второй ординар уже принёс прибыль, ожидаем аналогичный результат.</i>
 
 Текст из ВК:
 {text_for_ai}
@@ -224,7 +233,6 @@ def rewrite_text(title, summary):
         return f"<b>🎯 Новый прогноз</b>\n\n{clean_summary[:800]}"
 
 def apply_replacements(text):
-    """Заменяет INBET на Insider в готовом тексте"""
     for old, new in REPLACEMENTS.items():
         text = re.sub(old, new, text, flags=re.IGNORECASE)
     return text
@@ -242,7 +250,6 @@ def send_to_telegram(text, image_url=None, source_url=None):
     signature = f'\n\n📌 <a href="{CHANNEL_URL}"><b>{CHANNEL_NAME}</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Только одна кнопка
     keyboard = {
         "inline_keyboard": [
             [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}]
@@ -312,6 +319,7 @@ def main():
         all_news = []
         for vk_group in VK_GROUPS:
             print(f"Загружаем ВК {vk_group}...")
+            # Берем только 5 постов
             news = parse_vk(vk_group, count=NEWS_PER_SOURCE)
             print(f"  → {len(news)} постов")
             all_news.extend(news)
@@ -329,13 +337,14 @@ def main():
             
             pub_date = datetime.fromtimestamp(news.get('timestamp', 0)).strftime('%d.%m %H:%M') if news.get('timestamp') else '?'
             
+            # Если пост уже был в истории - пропускаем
             if guid in published_keys or url in published_keys or text_hash in published_keys:
                 print(f"[{pub_date}] ⛔ Дубль: {title[:50]}...")
                 continue
             
-            # Здесь применяются новые правила (стоп-слова, ординар)
+            # Проверка на стоп-слова, ординар и маркеры
             if not is_valid_post(title, summary):
-                print(f"[{pub_date}] Пропускаем (не подходит под правила): {title[:50]}...")
+                print(f"[{pub_date}] Пропускаем (не подходит): {title[:50]}...")
                 continue
             
             found_news = news
@@ -350,7 +359,6 @@ def main():
         image_url = found_news.get('image')
         post_text = rewrite_text(found_news['title'], found_news['summary'])
         
-        # Применяем замену INBET -> Insider
         post_text = apply_replacements(post_text)
         
         try:
