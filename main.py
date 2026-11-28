@@ -13,12 +13,12 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 VK_TOKEN = os.getenv("VK_TOKEN")
 
 # TODO: ЗАМЕНИ ЭТО
-CHANNEL_URL = "https://t.me/ТВОЙ_КАНАЛ" 
-CHANNEL_NAME = "Твой Канал | Ставки на спорт"
+CHANNEL_URL = "https://t.me/+COpP5PRxevYwM2Y6" 
+CHANNEL_NAME = "Prognoz.Insider"
 
 # --- ИСТОЧНИКИ (ТОЛЬКО ВК) ---
 VK_GROUPS = [
-    "-123456789", # TODO: ЗАМЕНИ на ID группы INBET или другой
+    "-51015741", # TODO: ЗАМЕНИ на ID группы INBET или другой
 ]
 
 STATE_FILE = "last_url.txt"
