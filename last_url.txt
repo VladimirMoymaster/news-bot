@@ -1,6 +1,3 @@
-TEXTHASH:речьидето35-летнемярославедемидове.
-TITLEHASH:уроженцабарнаулапожизненноосудиливтаиландезажестокоеубийство
-https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
 https://altai.aif.ru/incidents/v-zmeinogorske-muzhchinu-spasli-iz-goryashchego-doma
 TITLE:Рецидивист из Славгорода устроил смертельный пожар после пьяной ссоры
 TEXTHASH:подозреваемыйподжегодеждувихкомнатах.
@@ -298,3 +295,6 @@ TEXTHASH:экспресснапослеоплату!сегодняшнийэкс
 vk_-51015741_944874
 https://vk.com/wall-51015741_944874
 TEXTHASH:второйординарзашёл,спобедой!
+vk_-51015741_944872
+https://vk.com/wall-51015741_944872
+TEXTHASH:естьпобедапервогоординара!
