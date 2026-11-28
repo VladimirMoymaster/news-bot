@@ -215,20 +215,15 @@ def send_to_telegram(text, image_url=None, source_url=None):
     signature = f'\n\n📌 <a href="{CHANNEL_URL}"><b>{CHANNEL_NAME}</b></a>'
     MAX_MSG = 4096 - len(signature) - 50
     
-    # Создаем красивые кнопки
+       # Формируем только ОДНУ кнопку
     keyboard = {
         "inline_keyboard": [
-            [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}], # Главная кнопка на всю ширину
-            [
-                {"text": "📊 Все прогнозы", "url": CHANNEL_URL},
-                {"text": "🔗 Источник", "url": source_url if source_url else "https://vk.com"}
-            ]
+            [{"text": "🔥 Сделать ставку (Бонус)", "url": REF_LINK}]
         ]
     }
     
-    # ВАЖНО: Telegram требует передавать reply_markup как валидную JSON-строку
     reply_markup_json = json.dumps(keyboard)
-
+    
     if image_url and len(text) + len(signature) <= 1024:
         try:
             img_data = requests.get(image_url, timeout=15).content
