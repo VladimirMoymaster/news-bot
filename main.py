@@ -69,10 +69,6 @@ def get_text_hash(text):
     clean = re.sub(r'\s+', '', text.lower())[:200]
     return f"TEXTHASH:{clean}"
 
-def get_title_hash(title):
-    clean = re.sub(r'\W+', '', title.lower())
-    return f"TITLEHASH:{clean}"
-
 def load_published_keys():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
@@ -128,11 +124,12 @@ def parse_vk(group_id, count=5):
 def process_with_ai(title, summary, post_date_timestamp):
     post_date_str = datetime.fromtimestamp(post_date_timestamp).strftime('%d.%m.%Y')
     
+    # 1. Проверка времени матча
     time_prompt = f"""
     Прочитай текст прогноза на спорт. Найди дату и время начала матча.
     Дата публикации поста: {post_date_str}.
     Если написано "Сегодня в 20:45", значит время матча: {post_date_str} 20:45.
-    Выведи ТОЛЬКО дату и время в формате: YYYY-MM-DD HH:MM (например: 2023-11-26 20:45).
+    Выведи ТОЛЬКО дату и время в формате: YYYY-MM-DD HH:MM.
     Если времени нет, выведи: UNKNOWN.
 
     Текст:
@@ -151,7 +148,6 @@ def process_with_ai(title, summary, post_date_timestamp):
     except Exception as e:
         print(f"Ошибка при получении времени: {e}")
 
-    # Проверка времени
     if match_time_str != "UNKNOWN" and re.match(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}', match_time_str):
         try:
             moscow_tz = pytz.timezone('Europe/Moscow')
@@ -165,31 +161,27 @@ def process_with_ai(title, summary, post_date_timestamp):
         except Exception as e:
             print(f"Ошибка парсинга даты ({match_time_str}): {e}")
             
-    # Генерация поста
+    # 2. Генерация строгого и короткого поста
     text_for_ai = summary[:1500]
     prompt = f"""
-Ты — профессиональный редактор Telegram-канала о спортивных ставках «{CHANNEL_NAME}».
-Сделай из сырого поста КОРОТКИЙ, строгий и красивый пост для Telegram.
+Ты — профессиональный редактор канала о ставках. Сделай из этого текста МАКСИМАЛЬНО КОРОТКИЙ пост.
+Оставь ТОЛЬКО три строки (без лишних слов, без турниров, без анализов, без времени):
 
-ЖЁСТКИЕ ПРАВИЛА:
-1. Если в тексте есть слова «Выигрыш», «Зашла», «Рассчитана», «Прошла» — начни с ✅ или 💰. В остальных случаях используй 🎯.
-2. Укажи вид спорта (например: ⚽ Футбол).
-3. Вытащи: Турнир, Дату/Время, Команды.
-4. Вытащи саму ставку.
-5. КАТЕГОРИЧЕСКИЙ ЗАПРЕТ: Никогда не пиши фразы вроде "(коэффициент не указан)", "Кф нет", "Не указан". Если коэффициента нет в тексте, просто НЕ ВЫВОДИ строку с коэффициентом вообще.
-6. КАТЕГОРИЧЕСКИЙ ЗАПРЕТ: Не добавляй букву "ь" в конце слов или сокращений (пиши "РПЛ", а не "РПЛь"; пиши "МСК", а не "МСКь").
-7. Убери длинный анализ, оставь максимум 1-2 предложения сути.
-8. Используй только HTML теги <b> и <i>. Не используй Markdown.
-9. Никакой "воды" и канцеляризмов.
+<b>[Эмодзи] [Вид спорта]</b>
+<b>[Команда 1] — [Команда 2]</b>
+🎯 Ставка: [Текст ставки]
 
-ПРИМЕР ИДЕАЛЬНОГО ПОСТА (без кф):
-<b>⚽ Футбол | РПЛ</b>
-🗓 28 ноября, 19:00 МСК
+ПРАВИЛА:
+1. Если это Выигрыш (есть слова "Зашла", "Выигрыш"), поставь эмодзи ✅ вместо 🎯.
+2. Вид спорта: Футбол, Хоккей, Баскетбол и т.д.
+3. Категорически запрещено писать "Кф не указан", "нет данных" и т.д. Если кф нет в тексте — просто не пиши его.
+4. Никаких букв "ь" в конце сокращений (пиши "РПЛ", а не "РПЛь").
+5. Используй только HTML теги <b> и <i>.
 
+ПРИМЕР:
+<b>⚽ Футбол</b>
 <b>Балтика — Ахмат</b>
 🎯 Ставка: Тотал меньше 2.5
-
-💡 <i>Обе команды показывают осторожный футбол в последних турах.</i>
 
 Текст из ВК:
 {text_for_ai}
@@ -198,27 +190,24 @@ def process_with_ai(title, summary, post_date_timestamp):
         completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=1000
+            temperature=0.1,
+            max_tokens=300
         )
         result = completion.choices[0].message.content.strip()
         
-        # Очистка от мусора
         result = re.sub(r'<(?!b>|/b>|i>|/i>)', '', result)
         result = re.sub(r'(?<!<b)(?<!</b)(?<!<i)(?<!</i)>', '', result)
         result = re.sub(r'https?://\S+', '', result)
         result = re.sub(r'[ \t]+', ' ', result).strip()
         
-        # Проверка на отказы
-        refuse_markers = ["в предоставленном тексте", "невозможно", "не могу", "недостаточно данных", "нет информации", "к сожалению", "не указан"]
+        refuse_markers = ["в предоставленном тексте", "невозможно", "не могу", "недостаточно данных", "нет информации", "не указан"]
         if any(marker in result.lower() for marker in refuse_markers):
             raise ValueError("ИИ отказался")
             
         return result, match_time_str
     except Exception as e:
         print(f"Ошибка ИИ: {e}. Используем оригинал.")
-        clean_summary = summary.replace('\n', ' ').strip()
-        return f"<b>🎯 Прогноз</b>\n\n{clean_summary[:800]}", match_time_str
+        return f"<b>🎯 Прогноз</b>\n\n{summary[:300]}", match_time_str
 
 def apply_replacements(text):
     for old, new in REPLACEMENTS.items():
@@ -237,8 +226,7 @@ def send_to_telegram(text, image_url=None, source_url=None):
     MAX_MSG = 4096 - len(signature) - 50
     
     # ВСТАВЬ СЮДА СВОЮ ССЫЛКУ С GITHUB PAGES (ЕСЛИ СДЕЛАЛ СТРАНИЦУ)
-    # Если страницы нет, можешь оставить только кнопку на БК
-    ALL_BETS_URL = CHANNEL_URL # Пока ведет на канал, поменяешь на свою ссылку
+    ALL_BETS_URL = CHANNEL_URL 
     
     keyboard = {
         "inline_keyboard": [
